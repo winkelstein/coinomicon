@@ -42,52 +42,45 @@ contract CoinomiconExchange is ICoinomiconExchange {
         return _lastMarketPrice;
     }
 
-    function marketSellPrice(uint256 _amount)
-        public
-        view
-        returns (uint256 _available, uint256 _paymentAmount)
-    {
+    function marketSellPrice(
+        uint256 _amount
+    ) public view returns (uint256 _available, uint256 _paymentAmount) {
         return _marketSellPrice(_amount);
     }
 
-    function limitSellPrice(uint256 _amount, uint256 _limitPrice)
-        public
-        view
-        returns (uint256 _available, uint256 _paymentAmount)
-    {
+    function limitSellPrice(
+        uint256 _amount,
+        uint256 _limitPrice
+    ) public view returns (uint256 _available, uint256 _paymentAmount) {
         return _limitSellPrice(_amount, _limitPrice);
     }
 
-    function marketBuyPrice(uint256 _amount)
-        public
-        view
-        returns (uint256 _available, uint256 _paymentAmount)
-    {
+    function marketBuyPrice(
+        uint256 _amount
+    ) public view returns (uint256 _available, uint256 _paymentAmount) {
         return _marketBuyPrice(_amount);
     }
 
-    function limitBuyPrice(uint256 _amount, uint256 _limitPrice)
-        public
-        view
-        returns (uint256 _available, uint256 _paymentAmount)
-    {
+    function limitBuyPrice(
+        uint256 _amount,
+        uint256 _limitPrice
+    ) public view returns (uint256 _available, uint256 _paymentAmount) {
         return _limitBuyPrice(_amount, _limitPrice);
     }
 
-    function buyLimit(uint256 _amount, uint256 _limitPrice)
-        external
-        payable
-        returns (uint256)
-    {
+    function buyLimit(
+        uint256 _amount,
+        uint256 _limitPrice
+    ) external payable returns (uint256) {
         // TODO: sell as many as it possible like it done in buyMarket function
         require(_amount * _limitPrice == msg.value, "Insufficient balance");
         return _createBuyOrder(_amount, _limitPrice, msg.sender);
     }
 
-    function sellLimit(uint256 _amount, uint256 _limitPrice)
-        external
-        returns (uint256)
-    {
+    function sellLimit(
+        uint256 _amount,
+        uint256 _limitPrice
+    ) external returns (uint256) {
         // TODO: sell as many as it possible like it done in buyMarket function
         require(
             IERC20(tokenAddress).balanceOf(msg.sender) >= _amount,
@@ -240,11 +233,9 @@ contract CoinomiconExchange is ICoinomiconExchange {
         return orderBook.length - 1;
     }
 
-    function _marketSellPrice(uint256 _amount)
-        public
-        view
-        returns (uint256 _available, uint256 _paymentAmount)
-    {
+    function _marketSellPrice(
+        uint256 _amount
+    ) public view returns (uint256 _available, uint256 _paymentAmount) {
         uint256 amountLeft = _amount;
         for (uint256 i = 0; i < orderBook.length && amountLeft > 0; i++) {
             if (
@@ -265,11 +256,10 @@ contract CoinomiconExchange is ICoinomiconExchange {
         return (_available, _paymentAmount);
     }
 
-    function _limitSellPrice(uint256 _amount, uint256 _limitPrice)
-        public
-        view
-        returns (uint256 _available, uint256 _paymentAmount)
-    {
+    function _limitSellPrice(
+        uint256 _amount,
+        uint256 _limitPrice
+    ) public view returns (uint256 _available, uint256 _paymentAmount) {
         uint256 amountLeft = _amount;
         for (uint256 i = 0; i < orderBook.length && amountLeft > 0; i++) {
             if (
@@ -291,11 +281,9 @@ contract CoinomiconExchange is ICoinomiconExchange {
         return (_available, _paymentAmount);
     }
 
-    function _marketBuyPrice(uint256 _amount)
-        internal
-        view
-        returns (uint256 _available, uint256 _paymentAmount)
-    {
+    function _marketBuyPrice(
+        uint256 _amount
+    ) internal view returns (uint256 _available, uint256 _paymentAmount) {
         uint256 amountLeft = _amount;
         for (uint256 i = 0; i < orderBook.length && amountLeft > 0; i++) {
             if (
@@ -316,11 +304,10 @@ contract CoinomiconExchange is ICoinomiconExchange {
         return (_available, _paymentAmount);
     }
 
-    function _limitBuyPrice(uint256 _amount, uint256 _limitPrice)
-        internal
-        view
-        returns (uint256 _available, uint256 _paymentAmount)
-    {
+    function _limitBuyPrice(
+        uint256 _amount,
+        uint256 _limitPrice
+    ) internal view returns (uint256 _available, uint256 _paymentAmount) {
         uint256 amountLeft = _amount;
         for (uint256 i = 0; i < orderBook.length && amountLeft > 0; i++) {
             if (
@@ -342,10 +329,10 @@ contract CoinomiconExchange is ICoinomiconExchange {
         return (_available, _paymentAmount);
     }
 
-    function _paySeller(address payable _to, uint256 _amount)
-        internal
-        returns (bool)
-    {
+    function _paySeller(
+        address payable _to,
+        uint256 _amount
+    ) internal returns (bool) {
         require(
             address(this).balance >= _amount,
             "Insufficient exchange ether balance"
