@@ -1,13 +1,20 @@
-# Sample Hardhat Project
+# Coinomicon
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+Decentralized Exchange with Order Book.
 
-Try running some of the following tasks:
+## Development
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
-```
+### Smart-contract
+- [x] Factory contract
+	- [x] create new exchange
+	- [x] get exchange
+- [ ] Exchange contract
+	- [x] create orders
+	- [x] buy market
+	- [ ] sell market
+	- [ ] buy limit
+	- [ ] sell limit 
+
+### Frontend
+
+Nothing done yet.

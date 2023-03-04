@@ -22,6 +22,7 @@ contract CoinomiconExchange is ICoinomiconExchange {
 	}
 
 	Order[] public orderBook;
+	uint256 _lastMarketPrice = 1;
 
     constructor(address _tokenAddress) {
 		require(_tokenAddress != address(0), "Invalid token address");
@@ -34,22 +35,8 @@ contract CoinomiconExchange is ICoinomiconExchange {
 		return tokenAddress;
 	}
 
-	function _limitOrderPrice(uint256 _limitPrice) internal view returns (uint256[] memory) {
-		uint256 length;
-		for (uint256 i = 0; i < orderBook.length; i++) {
-			if (orderBook[i].closed == false && orderBook[i].price <= _limitPrice) {
-				length++;
-			}
-		}
-		uint256[] memory orderIds = new uint256[](length);
-
-		for (uint256 i = 0; length > 0; i++) {
-			if (orderBook[i].closed == false && orderBook[i].price <= _limitPrice) {
-				orderIds[length - (1 - length)] = i;
-			}
-		}
-
-		return orderIds;
+	function lastMarketPrice() external view returns (uint256) {
+		return _lastMarketPrice;
 	}
 
 	function marketSellPrice(uint256 _amount) public view returns (uint256 _available, uint256 _paymentAmount) {
@@ -69,11 +56,13 @@ contract CoinomiconExchange is ICoinomiconExchange {
 	}
 
 	function buyLimit(uint256 _amount, uint256 _limitPrice) external payable returns (uint256) {
+		// TODO: sell as many as it possible like it done in buyMarket function
 		require(_amount * _limitPrice == msg.value, "Insufficient balance");
 		return _createBuyOrder(_amount, _limitPrice, msg.sender);
 	}
 
 	function sellLimit(uint256 _amount, uint256 _limitPrice) external returns (uint256) {
+		// TODO: sell as many as it possible like it done in buyMarket function
 		require(IERC20(tokenAddress).balanceOf(msg.sender) >= _amount, "Insufficient balance");
 		require(IERC20(tokenAddress).allowance(msg.sender, address(this)) >= _amount, "Allowance less than specified amount");
 		require(IERC20(tokenAddress).transferFrom(msg.sender, address(this), _amount), "Unable to process transferring tokens");
@@ -83,9 +72,8 @@ contract CoinomiconExchange is ICoinomiconExchange {
 	function buyMarket(uint256 _amount) external payable {
 		(uint256 _available, uint256 _paymentAmount) = _marketSellPrice(_amount);
 		require(msg.value == _paymentAmount, "Given ether value is not equal to requested payment amount");
-		// Take price of already closed order
-		uint256 lastPriceOnMarket = orderBook[orderBook.length - 1].price;
-		uint myOrderId = _createBuyOrder(_amount, lastPriceOnMarket, msg.sender);
+
+		uint myOrderId = _createBuyOrder(_amount, _lastMarketPrice, msg.sender);
 		Order storage myOrder = orderBook[myOrderId];
 		require(_available >= myOrder.amount, "The amount exceeds the available funds. Instead, create a buy order via buyLimit contract method");
 
@@ -97,7 +85,8 @@ contract CoinomiconExchange is ICoinomiconExchange {
 					myOrder.closed = true;
 					_paySeller(payable(order.creator), myOrder.amount * order.price);
 					_payBuyer(msg.sender, myOrder.amount);
-					emit BuyOrderClosed(myOrderId, myOrder.amount, 0);
+					emit BuyOrderClosed(myOrderId, myOrder.amount, myOrder.price);
+					_lastMarketPrice = myOrder.price;
 					return;
 				} else if (order.amount < myOrder.amount) {
 					myOrder.amount -= order.amount;
@@ -106,6 +95,7 @@ contract CoinomiconExchange is ICoinomiconExchange {
 					if (!_payBuyer(msg.sender, order.amount)) revert("Unable to pay buyer");
 
 					emit SellOrderClosed(i, order.amount, order.price);
+					_lastMarketPrice = order.price;
 				} else if (order.amount == myOrder.amount) {
 					order.closed = true;
 					myOrder.closed = true;
@@ -117,6 +107,7 @@ contract CoinomiconExchange is ICoinomiconExchange {
 
 					emit SellOrderClosed(i, _amount, order.price);
 					emit BuyOrderClosed(myOrderId, _amount, order.price);
+					_lastMarketPrice = order.price;
 					return;
 				}
 			}
@@ -156,10 +147,18 @@ contract CoinomiconExchange is ICoinomiconExchange {
 	}
 
 	function _marketSellPrice(uint256 _amount) public view returns (uint256 _available, uint256 _paymentAmount) {
-		for (uint256 i = 0; i < orderBook.length && _available <= _amount; i++) {
+		uint256 amountLeft = _amount;
+		for (uint256 i = 0; i < orderBook.length && amountLeft > 0; i++) {
 			if (orderBook[i].closed == false && orderBook[i].orderType == OrderType.Sell) {
 				_available += orderBook[i].amount;
-				_paymentAmount += orderBook[i].amount * orderBook[i].price;
+				if (orderBook[i].amount > amountLeft) {
+					_paymentAmount += amountLeft * orderBook[i].price;
+					amountLeft = 0;
+				}
+				else {
+					_paymentAmount += orderBook[i].amount * orderBook[i].price;
+					amountLeft -= orderBook[i].amount;
+				}
 			}
 		}
 
@@ -167,10 +166,18 @@ contract CoinomiconExchange is ICoinomiconExchange {
 	}
 
 	function _limitSellPrice(uint256 _amount, uint256 _limitPrice) public view returns (uint256 _available, uint256 _paymentAmount) {
-		for (uint256 i = 0; i < orderBook.length && _available <= _amount; i++) {
-			if (orderBook[i].closed == false && orderBook[i].price <= _limitPrice && orderBook[i].orderType == OrderType.Sell) {
+		uint256 amountLeft = _amount;
+		for (uint256 i = 0; i < orderBook.length && amountLeft > 0; i++) {
+			if (orderBook[i].closed == false && orderBook[i].price <= _limitPrice &&  orderBook[i].orderType == OrderType.Sell) {
 				_available += orderBook[i].amount;
-				_paymentAmount += orderBook[i].amount * orderBook[i].price;
+				if (orderBook[i].amount > amountLeft) {
+					_paymentAmount += amountLeft * orderBook[i].price;
+					amountLeft = 0;
+				}
+				else {
+					_paymentAmount += orderBook[i].amount * orderBook[i].price;
+					amountLeft -= orderBook[i].amount;
+				}
 			}
 		}
 
@@ -178,10 +185,18 @@ contract CoinomiconExchange is ICoinomiconExchange {
 	}
 
 	function _marketBuyPrice(uint256 _amount) internal view returns (uint256 _available, uint256 _paymentAmount) {
-		for (uint256 i = 0; i < orderBook.length && _available <= _amount; i++) {
+		uint256 amountLeft = _amount;
+		for (uint256 i = 0; i < orderBook.length && amountLeft > 0; i++) {
 			if (orderBook[i].closed == false && orderBook[i].orderType == OrderType.Buy) {
 				_available += orderBook[i].amount;
-				_paymentAmount += orderBook[i].amount * orderBook[i].price;
+				if (orderBook[i].amount > amountLeft) {
+					_paymentAmount += amountLeft * orderBook[i].price;
+					amountLeft = 0;
+				}
+				else {
+					_paymentAmount += orderBook[i].amount * orderBook[i].price;
+					amountLeft -= orderBook[i].amount;
+				}
 			}
 		}
 
@@ -189,10 +204,18 @@ contract CoinomiconExchange is ICoinomiconExchange {
 	}
 
 	function _limitBuyPrice(uint256 _amount, uint256 _limitPrice) internal view returns (uint256 _available, uint256 _paymentAmount) {
-		for (uint256 i = 0; i < orderBook.length && _available <= _amount; i++) {
-			if (orderBook[i].closed == false && orderBook[i].price <= _limitPrice && orderBook[i].orderType == OrderType.Buy) {
+		uint256 amountLeft = _amount;
+		for (uint256 i = 0; i < orderBook.length && amountLeft > 0; i++) {
+			if (orderBook[i].closed == false && orderBook[i].price <= _limitPrice &&  orderBook[i].orderType == OrderType.Buy) {
 				_available += orderBook[i].amount;
-				_paymentAmount += orderBook[i].amount * orderBook[i].price;
+				if (orderBook[i].amount > amountLeft) {
+					_paymentAmount += amountLeft * orderBook[i].price;
+					amountLeft = 0;
+				}
+				else {
+					_paymentAmount += orderBook[i].amount * orderBook[i].price;
+					amountLeft -= orderBook[i].amount;
+				}
 			}
 		}
 
