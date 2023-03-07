@@ -2,44 +2,38 @@
 pragma solidity ^0.8.17;
 
 interface ICoinomiconExchange {
-    function token() external view returns (address);
+    struct Order {
+        address trader;
+        uint256 price;
+        uint256 amount;
+        uint256 date;
+        bool buy;
+        bool active;
+        bool isLimit;
+    }
 
-    function buyLimit(uint256 _amount, uint256 _limitPrice)
-        external
-        payable
-        returns (uint256);
+    function submitLimitOrder(
+        uint256 price,
+        uint256 amount,
+        bool buy
+    ) external payable returns (bool);
 
-    function sellLimit(uint256 _amount, uint256 _limitPrice)
-        external
-        returns (uint256);
+    function submitMarketOrder(uint256 amount, bool buy) external payable returns (bool);
 
-    function buyMarket(uint256 _amount) external payable;
+    function cancelOrder(uint256 orderId) external returns (bool);
 
-    function sellMarket(uint256 _amount) external;
+    function getOrderCount() external view returns (uint256);
 
-    function decline(uint256 _orderId) external;
+    function getOrder(uint256 orderId) external view returns (Order memory);
 
-    event BuyOrderCreated(
-        uint256 indexed _orderId,
-        uint256 _amount,
-        uint256 _limitPrice
+    event LimitOrderSubmitted(
+        uint256 orderId,
+        address trader,
+        uint256 price,
+        uint256 amount,
+        bool buy
     );
-    event SellOrderCreated(
-        uint256 indexed _orderId,
-        uint256 _amount,
-        uint256 _limitPrice
-    );
-
-    event BuyOrderClosed(
-        uint256 indexed _orderId,
-        uint256 _amount,
-        uint256 _limitPrice
-    );
-    event SellOrderClosed(
-        uint256 indexed _orderId,
-        uint256 _amount,
-        uint256 _limitPrice
-    );
-
-    event OrderDeclined(uint256 indexed _orderId);
+    event MarketOrderSubmitted(uint256 orderId, address trader, uint256 amount, bool buy);
+    event OrderCancelled(uint256 orderId, address trader);
+    //event OrderFilled(uint256 orderId, address trader, uint256 amount, uint256 totalCost);
 }
