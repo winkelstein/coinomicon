@@ -20,6 +20,14 @@ contract CoinomiconExchange is ICoinomiconExchange {
         factoryAddress = msg.sender;
     }
 
+    function getOrderCount() external view override returns (uint256) {
+        return orderBook.length;
+    }
+
+    function getOrder(uint256 orderId) external view override returns (Order memory) {
+        return orderBook[orderId];
+    }
+
     function submitLimitOrder(
         uint256 price,
         uint256 amount,
@@ -43,6 +51,109 @@ contract CoinomiconExchange is ICoinomiconExchange {
         return true;
     }
 
+    function submitMarketOrder(uint256 amount, bool buy) external payable override returns (bool) {
+        require(amount > 0, "Amount must be greater than zero");
+
+        if (buy) {
+            uint256 lastPrice = 1;
+
+            uint256 totalCost = 0;
+            uint256 remainingAmount = amount;
+
+            for (uint256 i = 0; i < orderBook.length && remainingAmount > 0; i++) {
+                Order memory order = orderBook[i];
+                if (order.active && !order.buy && order.isLimit) {
+                    uint256 availableAmount = order.amount;
+                    uint256 availableCost = order.price * availableAmount;
+
+                    if (availableAmount >= remainingAmount) {
+                        require(
+                            payable(order.trader).send(remainingAmount * order.price),
+                            "Unable to send ether to the trader"
+                        );
+                        totalCost += remainingAmount * order.price;
+                        availableAmount -= remainingAmount;
+                        remainingAmount = 0;
+                        order.amount = availableAmount;
+                    } else {
+                        require(
+                            payable(order.trader).send(availableCost),
+                            "Unable to send ether to the trader"
+                        );
+                        totalCost += availableCost;
+                        remainingAmount -= availableAmount;
+                        order.active = false;
+                        lastPrice = order.price;
+                    }
+                }
+            }
+
+            if (remainingAmount > 0) {
+                orderBook.push(
+                    Order(msg.sender, lastPrice, remainingAmount, block.timestamp, buy, true, false)
+                );
+                emit MarketOrderSubmitted(orderBook.length - 1, msg.sender, remainingAmount, buy);
+            }
+
+            /*if (totalCost <= msg.value) {
+                require(
+                    payable(msg.sender).send(msg.value.sub(totalCost)),
+                    "Unable to return ether left to the sender"
+                );
+            }*/
+
+            IERC20(token).transfer(msg.sender, amount.sub(remainingAmount));
+        } else {
+            require(msg.value == 0, "You cannot send ether if you want to sell tokens");
+            require(
+                IERC20(token).transferFrom(msg.sender, address(this), amount),
+                "Unable to transfer tokens to the exchange"
+            );
+            uint256 lastPrice = 1;
+            uint256 totalAmount = 0;
+            uint256 remainingAmount = amount;
+
+            for (uint256 i = 0; i < orderBook.length && remainingAmount > 0; i++) {
+                Order memory order = orderBook[i];
+                if (order.active && order.buy && order.isLimit) {
+                    uint256 availableAmount = order.amount;
+                    uint256 availableCost = order.price * availableAmount;
+
+                    if (availableAmount >= remainingAmount) {
+                        require(
+                            payable(msg.sender).send(remainingAmount * order.price),
+                            "Unable send ether to the sender"
+                        );
+                        IERC20(token).transfer(order.trader, remainingAmount);
+                        totalAmount += remainingAmount;
+                        availableAmount -= remainingAmount;
+                        remainingAmount = 0;
+                        order.amount = availableAmount;
+                    } else {
+                        require(
+                            payable(msg.sender).send(availableAmount * order.price),
+                            "Unable send ether to the sender"
+                        );
+                        IERC20(token).transfer(order.trader, availableAmount);
+                        totalAmount += availableAmount;
+                        remainingAmount -= availableAmount;
+                        order.active = false;
+                        lastPrice = order.price;
+                    }
+                }
+            }
+
+            if (remainingAmount > 0) {
+                orderBook.push(
+                    Order(msg.sender, lastPrice, remainingAmount, block.timestamp, buy, true, false)
+                );
+                emit MarketOrderSubmitted(orderBook.length - 1, msg.sender, remainingAmount, buy);
+            }
+        }
+
+        return true;
+    }
+
     function cancelOrder(uint256 orderId) external override returns (bool) {
         Order storage order = orderBook[orderId];
         require(msg.sender == order.trader, "You can only cancel your own orders.");
@@ -59,105 +170,6 @@ contract CoinomiconExchange is ICoinomiconExchange {
 
         delete orderBook[orderId];
         emit OrderCancelled(orderId, msg.sender);
-    }
-
-    function getOrderCount() external view override returns (uint256) {
-        return orderBook.length;
-    }
-
-    function getOrder(uint256 orderId) external view override returns (Order memory) {
-        return orderBook[orderId];
-    }
-
-    function submitMarketOrder(uint256 amount, bool buy) external payable override returns (bool) {
-        require(amount > 0, "Amount must be greater than zero");
-
-        if (buy) {
-            uint256 totalCost = 0;
-            uint256 remainingAmount = amount;
-
-            for (uint256 i = 0; i < orderBook.length && remainingAmount > 0; i++) {
-                if (orderBook[i].active && !orderBook[i].buy && orderBook[i].isLimit) {
-                    uint256 availableAmount = orderBook[i].amount;
-                    uint256 availableCost = orderBook[i].price * availableAmount;
-
-                    if (availableAmount >= remainingAmount) {
-                        totalCost += remainingAmount * orderBook[i].price;
-                        availableAmount -= remainingAmount;
-                        remainingAmount = 0;
-                        orderBook[i].amount = availableAmount;
-                    } else {
-                        totalCost += availableCost;
-                        remainingAmount -= availableAmount;
-                        orderBook[i].active = false;
-                    }
-                }
-            }
-
-            if (remainingAmount > 0) {
-                orderBook.push(
-                    Order(msg.sender, 0, remainingAmount, block.timestamp, buy, true, false)
-                );
-                emit MarketOrderSubmitted(orderBook.length - 1, msg.sender, remainingAmount, buy);
-            }
-
-            require(totalCost <= msg.value, "Insufficient ETH");
-
-            if (totalCost < msg.value) {
-                payable(msg.sender).transfer(msg.value.sub(totalCost));
-            }
-
-            IERC20(token).transfer(msg.sender, amount);
-        } else {
-            uint256 totalAmount = 0;
-            uint256 remainingCost = msg.value;
-            uint256 remainingEther = msg.value;
-
-            for (uint256 i = 0; i < orderBook.length && remainingCost > 0; i++) {
-                if (orderBook[i].active && orderBook[i].buy && orderBook[i].isLimit) {
-                    uint256 availableAmount = orderBook[i].amount;
-                    uint256 availableCost = orderBook[i].price * availableAmount;
-
-                    if (availableCost <= remainingCost) {
-                        totalAmount += availableAmount;
-                        remainingCost -= availableCost;
-                        orderBook[i].active = false;
-                        if (!payable(orderBook[i].trader).send(availableCost)) {
-                            remainingEther = remainingEther.add(availableCost);
-                        }
-                    } else {
-                        uint256 availableAmountForCost = remainingCost / orderBook[i].price;
-                        totalAmount += availableAmountForCost;
-                        remainingCost = 0;
-                        orderBook[i].amount = availableAmount - availableAmountForCost;
-                        if (!payable(orderBook[i].trader).send(remainingCost)) {
-                            remainingEther = remainingEther.add(remainingCost);
-                        }
-                    }
-                }
-            }
-
-            if (remainingCost > 0) {
-                orderBook.push(
-                    Order(
-                        msg.sender,
-                        remainingCost.div(totalAmount),
-                        totalAmount,
-                        block.timestamp,
-                        buy,
-                        true,
-                        false
-                    )
-                );
-                emit MarketOrderSubmitted(orderBook.length - 1, msg.sender, totalAmount, buy);
-            }
-
-            require(totalAmount > 0, "Order book is empty");
-            require(remainingEther == msg.value, "Error in transaction");
-
-            IERC20(token).transferFrom(msg.sender, address(this), totalAmount);
-        }
-
         return true;
     }
 }

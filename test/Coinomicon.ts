@@ -95,67 +95,136 @@ describe("Coinomicon", function () {
     });
 
     describe("Orders", function () {
-        it("Create buy orders", async function () {
-            const { coinomicon, exchange, token, owner, account1, account2 } = await loadFixture(
-                createExchangeFixture
-            );
+        describe("Create orders", function () {
+            it("Create sell limit orders", async function () {
+                const { coinomicon, exchange, token, owner, account1, account2 } =
+                    await loadFixture(createExchangeFixture);
 
-            for (let i = 0; i < 100; i++) {
-                await expect(
-                    exchange.buyLimit(i * 100, i * i, {
-                        value: i * 100 * i * i
-                    })
-                )
-                    .to.emit(exchange, "BuyOrderCreated")
-                    .withArgs(i, i * 100, i * i);
-            }
+                await token.approve(exchange.address, 1000);
+
+                for (let i = 0; i < 10; i++) {
+                    await exchange.submitLimitOrder(i * i, 100, false);
+                }
+
+                expect(await exchange.getOrderCount()).to.equal(10);
+                for (let i = 0; i < 10; i++) {
+                    const order = await exchange.getOrder(i);
+                    expect(order.trader).to.equal(owner.address);
+                    expect(order.price).to.equal(i * i);
+                    expect(order.amount).to.equal(100);
+                    expect(order.buy).to.equal(false);
+                    expect(order.active).to.equal(true);
+                    expect(order.isLimit).to.equal(true);
+                }
+            });
+
+            it("Create sell limit orders", async function () {
+                const { coinomicon, exchange, token, owner, account1, account2 } =
+                    await loadFixture(createExchangeFixture);
+
+                for (let i = 0; i < 10; i++) {
+                    await exchange.submitLimitOrder(i * i, 100, true, { value: 100 * i * i });
+                }
+
+                expect(await exchange.getOrderCount()).to.equal(10);
+                for (let i = 0; i < 10; i++) {
+                    const order = await exchange.getOrder(i);
+                    expect(order.trader).to.equal(owner.address);
+                    expect(order.price).to.equal(i * i);
+                    expect(order.amount).to.equal(100);
+                    expect(order.buy).to.equal(true);
+                    expect(order.active).to.equal(true);
+                    expect(order.isLimit).to.equal(true);
+                }
+            });
         });
 
-        it("Create sell orders", async function () {
-            const { coinomicon, exchange, token, owner, account1, account2 } = await loadFixture(
-                createExchangeFixture
-            );
+        describe("Process orders", function () {
+            it("Create sell limit orders and buy market", async function () {
+                const { coinomicon, exchange, token, owner, account1, account2 } =
+                    await loadFixture(createExchangeFixture);
+                const tokenToBuy = 91;
 
-            for (let i = 0; i < 100; i++) {
-                await token.approve(exchange.address, 15 + i);
-                await expect(exchange.sellLimit(15 + i, i))
-                    .to.emit(exchange, "SellOrderCreated")
-                    .withArgs(i, 15 + i, i);
-            }
+                await token.approve(exchange.address, 1000);
 
-            expect((await exchange.marketSellPrice(100))._available).to.be.greaterThanOrEqual(100);
-        });
+                for (let i = 0; i < 10; i++) {
+                    await exchange.submitLimitOrder(20, 100, false);
+                }
+                const initialOwnerEthBalance = await owner.getBalance();
 
-        it("Buy market price", async function () {
-            const { coinomicon, exchange, token, owner, account1, account2 } = await loadFixture(
-                equalTokenBalanceFixture
-            );
+                const initialTokenBalance = await token.balanceOf(account1.address);
+                await exchange
+                    .connect(account1)
+                    .submitMarketOrder(tokenToBuy, true, { value: 20 * tokenToBuy });
+                expect(await token.balanceOf(account1.address)).to.equal(
+                    initialTokenBalance.add(tokenToBuy)
+                );
+                expect(await owner.getBalance()).to.equal(
+                    initialOwnerEthBalance.add(20 * tokenToBuy)
+                );
+                expect(await ethers.provider.getBalance(exchange.address)).to.equal(0);
+            });
 
-            for (let i = 0; i < 100; i++) {
-                await token.approve(exchange.address, 150 + i);
-                await token.connect(account2).approve(exchange.address, 150 + i);
-                if (i % 2 == 0)
-                    await expect(exchange.sellLimit(150 + i, i * i))
-                        .to.emit(exchange, "SellOrderCreated")
-                        .withArgs(i, 150 + i, i * i);
-                else
-                    await expect(exchange.connect(account2).sellLimit(150 + i, i * i))
-                        .to.emit(exchange, "SellOrderCreated")
-                        .withArgs(i, 150 + i, i * i);
-            }
+            it("Create sell limit orders and buy market much more than contract has", async function () {
+                const { coinomicon, exchange, token, owner, account1, account2 } =
+                    await loadFixture(createExchangeFixture);
 
-            const initialOwnerBalance = await owner.getBalance();
-            const initialOwnerTokenBalance = await token.balanceOf(owner.address);
-            const [available, paymentAmount] = await exchange.marketSellPrice(10000);
-            expect(available).to.be.greaterThanOrEqual(10000);
+                await token.approve(exchange.address, 1000);
 
-            for (let i = 0; i < 10; i++) {
-                const [available, _paymentAmount] = await exchange.marketSellPrice(1000);
-                await exchange.connect(account1).buyMarket(1000, { value: _paymentAmount });
-            }
+                for (let i = 0; i < 10; i++) {
+                    await exchange.submitLimitOrder(20, 100, false);
+                }
+                const initialOwnerEthBalance = await owner.getBalance();
 
-            expect(await token.balanceOf(account1.address)).to.equal("1000000010000");
-            expect(await ethers.provider.getBalance(exchange.address)).to.equal(0);
+                const initialTokenBalance = await token.balanceOf(account1.address);
+                await exchange
+                    .connect(account1)
+                    .submitMarketOrder(1100, true, { value: 20 * 1100 });
+                expect(await token.balanceOf(account1.address)).to.equal(
+                    initialTokenBalance.add(1000)
+                );
+                expect(await owner.getBalance()).to.equal(initialOwnerEthBalance.add(20 * 1000));
+            });
+
+            it("Create buy limit orders and sell market", async function () {
+                const { coinomicon, exchange, token, owner, account1, account2 } =
+                    await loadFixture(equalTokenBalanceFixture);
+                const tokenToSell = 91;
+
+                for (let i = 0; i < 10; i++) {
+                    await exchange.submitLimitOrder(20, 100, true, { value: 20 * 100 });
+                }
+
+                const initialAcc1EthBalance = await account1.getBalance();
+
+                const initialTokenBalance = await token.balanceOf(owner.address);
+
+                await token.connect(account1).approve(exchange.address, tokenToSell);
+                await exchange.connect(account1).submitMarketOrder(tokenToSell, false);
+                expect(await token.balanceOf(owner.address)).to.equal(
+                    initialTokenBalance.add(tokenToSell)
+                );
+                console.log(await ethers.provider.getBalance(exchange.address));
+                expect(await account1.getBalance()).to.equal(
+                    initialAcc1EthBalance.add(20 * tokenToSell)
+                );
+            });
+
+            /*it("Create buy limit orders and sell market much more than contract has", async function () {
+                const { coinomicon, exchange, token, owner, account1, account2 } = await loadFixture(
+                    createExchangeFixture
+                );
+    
+                for (let i = 0; i < 10; i++) {
+                    await exchange.submitLimitOrder(20, 100, true, { value: 100 * 20 });
+                }
+                const initialOwnerEthBalance = await owner.getBalance();
+    
+                const initialTokenBalance = await token.balanceOf(account1.address);
+                await exchange.connect(account1).submitMarketOrder(1100, false);
+                expect(await token.balanceOf(account1.address)).to.equal(initialTokenBalance.add(1000));
+                expect(await owner.getBalance()).to.equal(initialOwnerEthBalance.add(20 * 1000));
+            });*/
         });
     });
 });

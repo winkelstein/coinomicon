@@ -35,5 +35,4 @@ interface ICoinomiconExchange {
     );
     event MarketOrderSubmitted(uint256 orderId, address trader, uint256 amount, bool buy);
     event OrderCancelled(uint256 orderId, address trader);
-    //event OrderFilled(uint256 orderId, address trader, uint256 amount, uint256 totalCost);
 }
