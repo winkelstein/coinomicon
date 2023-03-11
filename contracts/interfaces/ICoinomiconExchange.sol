@@ -13,8 +13,8 @@ interface ICoinomiconExchange {
     }
 
     function submitLimitOrder(
-        uint256 price,
         uint256 amount,
+        uint256 price,
         bool buy
     ) external payable returns (bool);
 
@@ -34,5 +34,7 @@ interface ICoinomiconExchange {
         bool buy
     );
     event MarketOrderSubmitted(uint256 orderId, address trader, uint256 amount, bool buy);
+    event LimitOrderClosed(uint256 orderId, address trader, uint256 price, bool buy);
+    event MarketOrderClosed(uint256 orderId, address trader, bool buy);
     event OrderCancelled(uint256 orderId, address trader);
 }

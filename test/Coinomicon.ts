@@ -1,14 +1,14 @@
 import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
-import { ethers, upgrades } from "hardhat";
+import { ethers } from "hardhat";
 
 describe("Coinomicon", function () {
     async function deployFixture() {
         const [owner, account1, account2] = await ethers.getSigners();
 
         const Coinomicon = await ethers.getContractFactory("CoinomiconFactory");
-        const coinomicon = await upgrades.deployProxy(Coinomicon);
+        const coinomicon = await Coinomicon.deploy();
 
         return { coinomicon, owner, account1, account2 };
     }
@@ -17,7 +17,7 @@ describe("Coinomicon", function () {
         const [owner, account1, account2] = await ethers.getSigners();
 
         const Coinomicon = await ethers.getContractFactory("CoinomiconFactory");
-        const coinomicon = await upgrades.deployProxy(Coinomicon);
+        const coinomicon = await Coinomicon.deploy();
 
         const Token = await ethers.getContractFactory("TestToken");
         const token = await Token.deploy("1000000000000");
@@ -34,7 +34,7 @@ describe("Coinomicon", function () {
         const [owner, account1, account2] = await ethers.getSigners();
 
         const Coinomicon = await ethers.getContractFactory("CoinomiconFactory");
-        const coinomicon = await upgrades.deployProxy(Coinomicon);
+        const coinomicon = await Coinomicon.deploy();
 
         const Token = await ethers.getContractFactory("TestToken");
         const token = await Token.deploy("3000000000000");
@@ -103,7 +103,7 @@ describe("Coinomicon", function () {
                 await token.approve(exchange.address, 1000);
 
                 for (let i = 0; i < 10; i++) {
-                    await exchange.submitLimitOrder(i * i, 100, false);
+                    await exchange.submitLimitOrder(100, i * i, false);
                 }
 
                 expect(await exchange.getOrderCount()).to.equal(10);
@@ -123,7 +123,7 @@ describe("Coinomicon", function () {
                     await loadFixture(createExchangeFixture);
 
                 for (let i = 0; i < 10; i++) {
-                    await exchange.submitLimitOrder(i * i, 100, true, { value: 100 * i * i });
+                    await exchange.submitLimitOrder(100, i * i, true, { value: 100 * i * i });
                 }
 
                 expect(await exchange.getOrderCount()).to.equal(10);
@@ -148,7 +148,7 @@ describe("Coinomicon", function () {
                 await token.approve(exchange.address, 1000);
 
                 for (let i = 0; i < 10; i++) {
-                    await exchange.submitLimitOrder(20, 100, false);
+                    await exchange.submitLimitOrder(100, 20, false);
                 }
                 const initialOwnerEthBalance = await owner.getBalance();
 
@@ -172,7 +172,7 @@ describe("Coinomicon", function () {
                 await token.approve(exchange.address, 1000);
 
                 for (let i = 0; i < 10; i++) {
-                    await exchange.submitLimitOrder(20, 100, false);
+                    await exchange.submitLimitOrder(100, 20, false);
                 }
                 const initialOwnerEthBalance = await owner.getBalance();
 
@@ -192,10 +192,10 @@ describe("Coinomicon", function () {
                 const tokenToSell = 91;
 
                 for (let i = 0; i < 10; i++) {
-                    await exchange.submitLimitOrder(20, 100, true, { value: 20 * 100 });
+                    await exchange.submitLimitOrder(100, 20, true, { value: 20 * 100 });
                 }
 
-                const initialAcc1EthBalance = await account1.getBalance();
+                const initialExchangeBalance = await ethers.provider.getBalance(exchange.address);
 
                 const initialTokenBalance = await token.balanceOf(owner.address);
 
@@ -204,27 +204,33 @@ describe("Coinomicon", function () {
                 expect(await token.balanceOf(owner.address)).to.equal(
                     initialTokenBalance.add(tokenToSell)
                 );
-                console.log(await ethers.provider.getBalance(exchange.address));
-                expect(await account1.getBalance()).to.equal(
-                    initialAcc1EthBalance.add(20 * tokenToSell)
-                );
+                expect(
+                    initialExchangeBalance.sub(await ethers.provider.getBalance(exchange.address))
+                ).to.equal(tokenToSell * 20);
             });
 
-            /*it("Create buy limit orders and sell market much more than contract has", async function () {
-                const { coinomicon, exchange, token, owner, account1, account2 } = await loadFixture(
-                    createExchangeFixture
-                );
-    
+            it("Create buy limit orders and sell market much more than contract has", async function () {
+                const { coinomicon, exchange, token, owner, account1, account2 } =
+                    await loadFixture(equalTokenBalanceFixture);
+                const tokenToSell = 91000;
+
                 for (let i = 0; i < 10; i++) {
-                    await exchange.submitLimitOrder(20, 100, true, { value: 100 * 20 });
+                    await exchange.submitLimitOrder(100, 20, true, { value: 20 * 100 });
                 }
-                const initialOwnerEthBalance = await owner.getBalance();
-    
-                const initialTokenBalance = await token.balanceOf(account1.address);
-                await exchange.connect(account1).submitMarketOrder(1100, false);
-                expect(await token.balanceOf(account1.address)).to.equal(initialTokenBalance.add(1000));
-                expect(await owner.getBalance()).to.equal(initialOwnerEthBalance.add(20 * 1000));
-            });*/
+
+                const initialExchangeBalance = await ethers.provider.getBalance(exchange.address);
+
+                const initialTokenBalance = await token.balanceOf(owner.address);
+
+                await token.connect(account1).approve(exchange.address, tokenToSell);
+                await exchange.connect(account1).submitMarketOrder(tokenToSell, false);
+                expect(await token.balanceOf(owner.address)).to.equal(
+                    initialTokenBalance.add(1000)
+                );
+                expect(
+                    initialExchangeBalance.sub(await ethers.provider.getBalance(exchange.address))
+                ).to.equal(1000 * 20);
+            });
         });
     });
 });
