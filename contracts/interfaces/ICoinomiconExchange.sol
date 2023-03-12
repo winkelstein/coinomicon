@@ -23,6 +23,8 @@ interface ICoinomiconExchange {
         bool buy
     ) external view returns (uint256 available, uint256 totalCost);
 
+    function bestPrice() external view returns (uint256);
+
     function submitLimitOrder(
         uint256 amount,
         uint256 price,

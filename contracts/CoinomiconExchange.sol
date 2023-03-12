@@ -95,6 +95,22 @@ contract CoinomiconExchange is ICoinomiconExchange {
         }
     }
 
+    /// @notice calculate best price
+    /// @dev should be used for calculation remaining amount if market order cannot be closed by submitMarketOrder function
+    function bestPrice() public view returns (uint256) {
+        uint256 sum = 1;
+        uint256 j = 1;
+
+        for (uint i = 0; i < orderBook.length; i++) {
+            if (!orderBook[i].active) {
+                sum += orderBook[i].price;
+                j++;
+            }
+        }
+
+        return sum.div(j);
+    }
+
     /// @notice submit limit order
     /// @param amount Amount tokens you want to buy or sell
     /// @param price Limited price
@@ -222,16 +238,12 @@ contract CoinomiconExchange is ICoinomiconExchange {
     /// @dev trying to close created order by limited orders
     function submitMarketOrder(uint256 amount, bool buy) external payable override returns (bool) {
         require(amount > 0, "Amount must be greater than zero");
-        orderBook.push(Order(msg.sender, 0, amount, block.timestamp, buy, true, false));
+        orderBook.push(Order(msg.sender, bestPrice(), amount, block.timestamp, buy, true, false));
         emit MarketOrderSubmitted(orderBook.length - 1, msg.sender, amount, buy);
         Order storage myOrder = orderBook[orderBook.length - 1];
 
         if (buy) {
             uint256 totalCost = 0;
-            // default value for bestPrice
-            uint256 bestPrice = 1;
-            // order counter
-            uint256 j = 1;
 
             for (uint256 i = 0; i < orderBook.length && myOrder.amount > 0; i++) {
                 Order storage order = orderBook[i];
@@ -260,15 +272,10 @@ contract CoinomiconExchange is ICoinomiconExchange {
                             emit LimitOrderClosed(i, order.trader, order.price, order.buy);
                         else emit MarketOrderClosed(i, order.trader, order.price, order.buy);
                     }
-
-                    bestPrice += order.price;
-                    j++;
                 }
             }
-
-            bestPrice = bestPrice.div(j);
             require(
-                msg.value.sub(totalCost) >= bestPrice * myOrder.amount,
+                msg.value.sub(totalCost) >= myOrder.price * myOrder.amount,
                 "Not enough ether to create new market order"
             );
             if (myOrder.amount == 0) {
@@ -276,10 +283,10 @@ contract CoinomiconExchange is ICoinomiconExchange {
                 emit MarketOrderClosed(
                     orderBook.length - 1,
                     myOrder.trader,
-                    bestPrice,
+                    myOrder.price,
                     myOrder.buy
                 );
-            } else myOrder.price = bestPrice;
+            }
 
             IERC20(token).transfer(msg.sender, amount.sub(myOrder.amount));
         } else {
@@ -287,11 +294,6 @@ contract CoinomiconExchange is ICoinomiconExchange {
             IERC20(token).transferFrom(msg.sender, address(this), amount);
             uint256 totalAmount = 0;
             uint256 totalCost = 0;
-
-            // default value for bestPrice
-            uint256 bestPrice = 1;
-            // order counter
-            uint256 j = 1;
 
             for (uint256 i = 0; i < orderBook.length && myOrder.amount > 0; i++) {
                 Order storage order = orderBook[i];
@@ -316,23 +318,18 @@ contract CoinomiconExchange is ICoinomiconExchange {
                             emit LimitOrderClosed(i, order.trader, order.price, order.buy);
                         else emit MarketOrderClosed(i, order.trader, order.price, order.buy);
                     }
-
-                    bestPrice += order.price;
-                    j++;
                 }
             }
-
-            bestPrice = bestPrice.div(j);
 
             if (myOrder.amount == 0) {
                 myOrder.active = false;
                 emit MarketOrderClosed(
                     orderBook.length - 1,
                     myOrder.trader,
-                    bestPrice,
+                    myOrder.price,
                     myOrder.buy
                 );
-            } else myOrder.price = bestPrice;
+            }
 
             require(payable(msg.sender).send(totalCost), "Unable to pay ether to the seller");
         }
