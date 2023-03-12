@@ -12,6 +12,17 @@ interface ICoinomiconExchange {
         bool isLimit;
     }
 
+    function getOrderCount() external view returns (uint256);
+
+    function getOrder(uint256 orderId) external view returns (Order memory);
+
+    function cost(
+        uint256 amount,
+        uint256 price,
+        bool isLimit,
+        bool buy
+    ) external view returns (uint256 available, uint256 totalCost);
+
     function submitLimitOrder(
         uint256 amount,
         uint256 price,
@@ -22,19 +33,15 @@ interface ICoinomiconExchange {
 
     function cancelOrder(uint256 orderId) external returns (bool);
 
-    function getOrderCount() external view returns (uint256);
-
-    function getOrder(uint256 orderId) external view returns (Order memory);
-
     event LimitOrderSubmitted(
         uint256 orderId,
         address trader,
-        uint256 price,
         uint256 amount,
+        uint256 price,
         bool buy
     );
     event MarketOrderSubmitted(uint256 orderId, address trader, uint256 amount, bool buy);
     event LimitOrderClosed(uint256 orderId, address trader, uint256 price, bool buy);
-    event MarketOrderClosed(uint256 orderId, address trader, bool buy);
+    event MarketOrderClosed(uint256 orderId, address trader, uint256 price, bool buy);
     event OrderCancelled(uint256 orderId, address trader);
 }

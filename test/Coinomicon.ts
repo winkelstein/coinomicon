@@ -150,18 +150,21 @@ describe("Coinomicon", function () {
                 for (let i = 0; i < 10; i++) {
                     await exchange.submitLimitOrder(100, 20, false);
                 }
+
+                const [available, totalCost] = await exchange.cost(tokenToBuy, 0, false, true);
+                expect(available).to.equal(tokenToBuy);
+                expect(totalCost).to.equal(20 * tokenToBuy);
+
                 const initialOwnerEthBalance = await owner.getBalance();
 
                 const initialTokenBalance = await token.balanceOf(account1.address);
                 await exchange
                     .connect(account1)
-                    .submitMarketOrder(tokenToBuy, true, { value: 20 * tokenToBuy });
+                    .submitMarketOrder(tokenToBuy, true, { value: totalCost });
                 expect(await token.balanceOf(account1.address)).to.equal(
                     initialTokenBalance.add(tokenToBuy)
                 );
-                expect(await owner.getBalance()).to.equal(
-                    initialOwnerEthBalance.add(20 * tokenToBuy)
-                );
+                expect(await owner.getBalance()).to.equal(initialOwnerEthBalance.add(totalCost));
                 expect(await ethers.provider.getBalance(exchange.address)).to.equal(0);
             });
 
@@ -171,19 +174,26 @@ describe("Coinomicon", function () {
 
                 await token.approve(exchange.address, 1000);
 
+                const tokenToBuy = 1100;
+
                 for (let i = 0; i < 10; i++) {
                     await exchange.submitLimitOrder(100, 20, false);
                 }
+
+                const [available, totalCost] = await exchange.cost(tokenToBuy, 0, false, true);
+                expect(available).to.equal(1000);
+                expect(totalCost).to.equal(20 * 1000);
+
                 const initialOwnerEthBalance = await owner.getBalance();
 
                 const initialTokenBalance = await token.balanceOf(account1.address);
                 await exchange
                     .connect(account1)
-                    .submitMarketOrder(1100, true, { value: 20 * 1100 });
+                    .submitMarketOrder(tokenToBuy, true, { value: 20 * tokenToBuy });
                 expect(await token.balanceOf(account1.address)).to.equal(
                     initialTokenBalance.add(1000)
                 );
-                expect(await owner.getBalance()).to.equal(initialOwnerEthBalance.add(20 * 1000));
+                expect(await owner.getBalance()).to.equal(initialOwnerEthBalance.add(totalCost));
             });
 
             it("Create buy limit orders and sell market", async function () {
@@ -194,6 +204,10 @@ describe("Coinomicon", function () {
                 for (let i = 0; i < 10; i++) {
                     await exchange.submitLimitOrder(100, 20, true, { value: 20 * 100 });
                 }
+
+                const [available, totalCost] = await exchange.cost(tokenToSell, 0, true, false);
+                expect(available).to.equal(tokenToSell);
+                expect(totalCost).to.equal(20 * tokenToSell);
 
                 const initialExchangeBalance = await ethers.provider.getBalance(exchange.address);
 
@@ -206,7 +220,7 @@ describe("Coinomicon", function () {
                 );
                 expect(
                     initialExchangeBalance.sub(await ethers.provider.getBalance(exchange.address))
-                ).to.equal(tokenToSell * 20);
+                ).to.equal(totalCost);
             });
 
             it("Create buy limit orders and sell market much more than contract has", async function () {
@@ -217,6 +231,10 @@ describe("Coinomicon", function () {
                 for (let i = 0; i < 10; i++) {
                     await exchange.submitLimitOrder(100, 20, true, { value: 20 * 100 });
                 }
+
+                const [available, totalCost] = await exchange.cost(tokenToSell, 0, true, false);
+                expect(available).to.equal(1000);
+                expect(totalCost).to.equal(20 * 1000);
 
                 const initialExchangeBalance = await ethers.provider.getBalance(exchange.address);
 
@@ -229,7 +247,67 @@ describe("Coinomicon", function () {
                 );
                 expect(
                     initialExchangeBalance.sub(await ethers.provider.getBalance(exchange.address))
-                ).to.equal(1000 * 20);
+                ).to.equal(totalCost);
+            });
+        });
+
+        describe("Should revert", function () {
+            it("Not enough ether to submit market buy", async function () {
+                const { coinomicon, exchange, token, owner, account1, account2 } =
+                    await loadFixture(createExchangeFixture);
+                const tokenToBuy = 91;
+
+                await token.approve(exchange.address, 1000);
+
+                for (let i = 0; i < 10; i++) {
+                    await exchange.submitLimitOrder(100, 20, false);
+                }
+
+                const [available, totalCost] = await exchange.cost(tokenToBuy, 0, false, true);
+                expect(available).to.equal(tokenToBuy);
+                expect(totalCost).to.equal(20 * tokenToBuy);
+
+                expect(
+                    exchange.connect(account1).submitMarketOrder(tokenToBuy, true, { value: 100 })
+                ).to.revertedWith("Unable to send ether to the trader");
+            });
+
+            it("Not enough tokens to submit market sell", async function () {
+                const { coinomicon, exchange, token, owner, account1, account2 } =
+                    await loadFixture(equalTokenBalanceFixture);
+                const tokenToSell = 91;
+
+                for (let i = 0; i < 10; i++) {
+                    await exchange.submitLimitOrder(100, 20, true, { value: 20 * 100 });
+                }
+
+                const [available, totalCost] = await exchange.cost(tokenToSell, 0, true, false);
+                expect(available).to.equal(tokenToSell);
+                expect(totalCost).to.equal(20 * tokenToSell);
+
+                await token.connect(account1).approve(exchange.address, 10);
+                await expect(
+                    exchange.connect(account1).submitMarketOrder(tokenToSell, false)
+                ).to.revertedWith("ERC20: insufficient allowance");
+            });
+
+            it("Not enough ether to submit limit buy", async function () {
+                const { coinomicon, exchange, token, owner, account1, account2 } =
+                    await loadFixture(equalTokenBalanceFixture);
+
+                await expect(
+                    exchange.submitLimitOrder(100, 20, true, { value: 10 * 100 })
+                ).to.revertedWith("Insufficient ETH");
+            });
+
+            it("Not enough tokens to submit limit sell", async function () {
+                const { coinomicon, exchange, token, owner, account1, account2 } =
+                    await loadFixture(equalTokenBalanceFixture);
+
+                await token.approve(exchange.address, 10);
+                await expect(exchange.submitLimitOrder(100, 10, false)).to.revertedWith(
+                    "ERC20: insufficient allowance"
+                );
             });
         });
     });

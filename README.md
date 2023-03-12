@@ -8,12 +8,13 @@ Decentralized Exchange with Order Book.
 - [x] Factory contract
 	- [x] create new exchange
 	- [x] get exchange
-- [ ] Exchange contract
+- [x] Exchange contract
 	- [x] create orders
 	- [x] buy market
-	- [ ] sell market
-	- [ ] buy limit
-	- [ ] sell limit 
+	- [x] sell market
+	- [x] buy limit
+	- [x] sell limit
+- [x] Tests
 
 ### Frontend
 
