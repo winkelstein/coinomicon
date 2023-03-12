@@ -8,17 +8,12 @@ import "./interfaces/ICoinomiconExchange.sol";
 /// @title Coinomicon Exchange
 /// @author treug0lnik041
 /// @notice Should only be deployed by Factory contract
-contract CoinomiconExchange is ICoinomiconExchange {
+contract CoinomiconExchangeImpl is ICoinomiconExchange {
     using SafeMath for uint256;
 
     address public token;
+    address factory;
     Order[] public orderBook;
-
-    constructor(address _token) {
-        require(_token != address(0), "Invalid token address");
-        require(msg.sender != tx.origin, "Contract could be deployed only from factory contract");
-        token = _token;
-    }
 
     /// @notice gets order book length
     function getOrderCount() external view override returns (uint256) {

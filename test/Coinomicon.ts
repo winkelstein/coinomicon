@@ -10,19 +10,21 @@ describe("Coinomicon", function () {
         const Coinomicon = await ethers.getContractFactory("CoinomiconFactory");
         const coinomicon = await Coinomicon.deploy();
 
+        const CoinomiconExchangeImpl = await ethers.getContractFactory("CoinomiconExchangeImpl");
+        const coinomiconExchangeImpl = await CoinomiconExchangeImpl.deploy();
+
+        await coinomicon._setExchangeImplementation(coinomiconExchangeImpl.address);
+
         return { coinomicon, owner, account1, account2 };
     }
 
     async function createExchangeFixture() {
-        const [owner, account1, account2] = await ethers.getSigners();
-
-        const Coinomicon = await ethers.getContractFactory("CoinomiconFactory");
-        const coinomicon = await Coinomicon.deploy();
+        const { coinomicon, owner, account1, account2 } = await deployFixture();
 
         const Token = await ethers.getContractFactory("TestToken");
-        const token = await Token.deploy("1000000000000");
+        const token = await Token.deploy("3000000000000");
 
-        const ExchangeContract = await ethers.getContractFactory("CoinomiconExchange");
+        const ExchangeContract = await ethers.getContractFactory("CoinomiconExchangeImpl");
         await coinomicon.createExchange(token.address);
         const exchangeAddress = await coinomicon.getExchange(token.address);
         const exchange = await ExchangeContract.attach(exchangeAddress);
@@ -31,20 +33,11 @@ describe("Coinomicon", function () {
     }
 
     async function equalTokenBalanceFixture() {
-        const [owner, account1, account2] = await ethers.getSigners();
+        const { coinomicon, exchange, token, owner, account1, account2 } =
+            await createExchangeFixture();
 
-        const Coinomicon = await ethers.getContractFactory("CoinomiconFactory");
-        const coinomicon = await Coinomicon.deploy();
-
-        const Token = await ethers.getContractFactory("TestToken");
-        const token = await Token.deploy("3000000000000");
-        token.transfer(account1.address, "1000000000000");
-        token.transfer(account2.address, "1000000000000");
-
-        const ExchangeContract = await ethers.getContractFactory("CoinomiconExchange");
-        await coinomicon.createExchange(token.address);
-        const exchangeAddress = await coinomicon.getExchange(token.address);
-        const exchange = await ExchangeContract.attach(exchangeAddress);
+        await token.transfer(account1.address, "1000000000000");
+        await token.transfer(account2.address, "1000000000000");
 
         return { coinomicon, exchange, token, owner, account1, account2 };
     }
@@ -70,14 +63,14 @@ describe("Coinomicon", function () {
 
             await coinomicon.createExchange(token.address);
 
-            const ExchangeContract = await ethers.getContractFactory("CoinomiconExchange");
+            const ExchangeContract = await ethers.getContractFactory("CoinomiconExchangeImpl");
             const exchangeAddress = await coinomicon.getExchange(token.address);
             const exchange = await ExchangeContract.attach(exchangeAddress);
 
             expect(await exchange.token()).to.equal(token.address);
         });
 
-        it("Bad tests", async function () {
+        it("Should revert", async function () {
             const { coinomicon, owner, account1, account2 } = await loadFixture(deployFixture);
 
             const Token = await ethers.getContractFactory("TestToken");
@@ -89,8 +82,52 @@ describe("Coinomicon", function () {
                 "Exchange already exists"
             );
             await expect(
-                coinomicon.createExchange("0x0000000000000000000000000000000000000000")
+                coinomicon.createExchange(ethers.constants.AddressZero)
             ).to.be.revertedWith("Invalid token address");
+        });
+    });
+
+    describe("Proxy", function () {
+        it("Upgrade", async function () {
+            const { coinomicon, exchange, token, owner, account1, account2 } = await loadFixture(
+                createExchangeFixture
+            );
+
+            const CoinomiconExchangeImpl = await ethers.getContractFactory(
+                "CoinomiconExchangeImpl"
+            );
+            const coinomiconExchangeImpl = await CoinomiconExchangeImpl.deploy();
+
+            await coinomicon._setExchangeImplementation(coinomiconExchangeImpl.address);
+
+            expect(await coinomicon._getExchangeImplementation()).to.equal(
+                coinomiconExchangeImpl.address
+            );
+        });
+
+        describe("Should revert", function () {
+            it("Set address of 0 implementation", async function () {
+                const { coinomicon, exchange, token, owner, account1, account2 } =
+                    await loadFixture(createExchangeFixture);
+
+                await expect(
+                    coinomicon._setExchangeImplementation(ethers.constants.AddressZero)
+                ).to.revertedWith("Invalid implementation");
+            });
+
+            it("Implementation hasn't been set", async function () {
+                const [owner, account1, account2] = await ethers.getSigners();
+
+                const Coinomicon = await ethers.getContractFactory("CoinomiconFactory");
+                const coinomicon = await Coinomicon.deploy();
+
+                const _Token = await ethers.getContractFactory("TestToken");
+                const _token = await _Token.deploy(80000);
+
+                await expect(coinomicon.createExchange(_token.address)).to.revertedWith(
+                    "Invalid implementation"
+                );
+            });
         });
     });
 
