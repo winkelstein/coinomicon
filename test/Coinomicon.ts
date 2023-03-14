@@ -128,6 +128,22 @@ describe("Coinomicon", function () {
                     "Invalid implementation"
                 );
             });
+
+            it("Only owner", async function () {
+                const { coinomicon, exchange, token, owner, account1, account2 } =
+                    await loadFixture(createExchangeFixture);
+
+                const CoinomiconExchangeImpl = await ethers.getContractFactory(
+                    "CoinomiconExchangeImpl"
+                );
+                const coinomiconExchangeImpl = await CoinomiconExchangeImpl.deploy();
+
+                await expect(
+                    coinomicon
+                        .connect(account1)
+                        ._setExchangeImplementation(coinomiconExchangeImpl.address)
+                ).to.revertedWith("Ownable: caller is not the owner");
+            });
         });
     });
 
@@ -231,6 +247,13 @@ describe("Coinomicon", function () {
                     initialTokenBalance.add(1000)
                 );
                 expect(await owner.getBalance()).to.equal(initialOwnerEthBalance.add(totalCost));
+
+                const myOrderId = (await exchange.getOrderCount()).sub(1);
+                const myOrder = await exchange.getOrder(myOrderId);
+                expect(myOrder.active).to.equal(true);
+                expect(myOrder.buy).to.equal(true);
+                expect(myOrder.isLimit).to.equal(false);
+                expect(myOrder.amount).to.equal(1100 - 1000);
             });
 
             it("Create buy limit orders and sell market", async function () {
@@ -285,6 +308,13 @@ describe("Coinomicon", function () {
                 expect(
                     initialExchangeBalance.sub(await ethers.provider.getBalance(exchange.address))
                 ).to.equal(totalCost);
+
+                const myOrderId = (await exchange.getOrderCount()).sub(1);
+                const myOrder = await exchange.getOrder(myOrderId);
+                expect(myOrder.active).to.equal(true);
+                expect(myOrder.buy).to.equal(false);
+                expect(myOrder.isLimit).to.equal(false);
+                expect(myOrder.amount).to.equal(91000 - 1000);
             });
         });
 

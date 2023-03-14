@@ -37,7 +37,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<MainPage />} />
-          <Route path="documentation" element={<DocumentationPage />} />
+          <Route path="docs" element={<DocumentationPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
