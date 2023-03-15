@@ -25,6 +25,7 @@ Decentralized Exchange with Order Book.
     -   [x] Info cards
     -   [x] Links
     -   [ ] Connect wallet button
+    -   [ ] Footer
 -   [ ] Exchange page
     -   [ ] Create exchange component
 -   [ ] Docs page
