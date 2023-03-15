@@ -10,6 +10,7 @@ import {
   Text,
   Image,
   Row,
+  Spacer,
 } from '@nextui-org/react'
 import InfoCard from '../components/InfoCard'
 
@@ -17,9 +18,9 @@ const inter = Inter({ subsets: ['latin'] })
 
 // TODO: add links
 const routes = {
-  app: '#',
-  docs: '#',
-  contact: '#',
+  app: 'exchange',
+  docs: 'docs',
+  contact: 'contacts',
 }
 
 export default function Home() {
@@ -37,6 +38,12 @@ export default function Home() {
           <Navbar.Link href={routes.contact}>Contact Us</Navbar.Link>
         </Navbar.Content>
         <Navbar.Content>
+          <Navbar.Link href="https://github.com/treug0lnik041/coinomicon">
+            <Image src="icons/github_24.png" alt="gh_link"></Image>
+          </Navbar.Link>
+          <Navbar.Link href="https://t.me/treug0lnik">
+            <Image src="icons/telegram_24.png" alt="tg_link"></Image>
+          </Navbar.Link>
           {/* TODO: add functionality */}
           <Button auto color="primary" bordered>
             Connect wallet
@@ -46,18 +53,32 @@ export default function Home() {
 
       <Container
         css={{
-          height: '150vh',
-          backgroundImage: 'url(sunset.jpg)',
+          height: '100%',
+          backgroundImage: 'url(headlights.jpg)',
           backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'auto',
         }}
       >
-        <Grid.Container justify="center" css={{ height: '1000px' }}>
+        <Grid.Container justify="center">
           <Grid xs={12} sm={6} alignItems="center">
-            <Col css={{ width: '100%' }}>
-              <Text weight={'bold'} size={70} css={{ textAlign: 'center' }}>
+            <Col css={{ width: '100%', marginTop: '50vh' }}>
+              <Text
+                weight="bold"
+                size={70}
+                css={{
+                  textAlign: 'center',
+                }}
+              >
                 Decentralized Exchange
               </Text>
-              <Text weight={'bold'} size={70} css={{ textAlign: 'center' }}>
+              <Text
+                weight={'bold'}
+                size={70}
+                css={{
+                  textAlign: 'center',
+                }}
+              >
                 For everyone
               </Text>
               <Row justify="center">
@@ -71,37 +92,52 @@ export default function Home() {
           </Grid>
         </Grid.Container>
 
-        <Grid.Container gap={2}>
-          <Grid xs={12} sm={4}>
-            <InfoCard
-              label="What are we"
-              title="Decentralized Exchange on Order Book powered by Ethereum"
-              imageUrl="atlantic_ridge.jpg"
-              footerText="Learn how it works"
-              buttonText="go to docs"
-              buttonLink={routes.docs}
-            />
-          </Grid>
-          <Grid xs={12} sm={4}>
-            <InfoCard
-              label="Development"
-              title="Contribute to the project or report an issues"
-              imageUrl="building.jpg"
-              footerText="Contact developers"
-              buttonText="contact us"
-              buttonLink={routes.contact}
-            />
-          </Grid>
-          <Grid xs={12} sm={4}>
-            <InfoCard
-              label="Get started"
-              title="Trade tokens with confidence"
-              imageUrl="tail.jpg"
-              footerText="Let's start"
-              buttonText="launch app"
-              buttonLink={routes.app}
-            />
-          </Grid>
+        <Spacer y={12} />
+
+        <Grid.Container gap={8} justify="center">
+          <Row gap={5}>
+            <Grid>
+              <Text h1>Jump in</Text>
+              <Text h3>
+                Trade crypto-tokens directly on the Ethereum blockchain without
+                third-party control.
+              </Text>
+            </Grid>
+          </Row>
+          <Spacer y={4} />
+          <Row gap={5}>
+            <Grid xs={6}>
+              <InfoCard
+                label="About"
+                title="Build DeFi apps with Coinomicon on Ethereum. Start with quick quide, simple documentation and GitHub source code."
+                imageUrl="vik.jpg"
+                buttonText="go to docs"
+                buttonLink={routes.docs}
+              />
+            </Grid>
+            <Grid>
+              <Text h1>Coinomicon</Text>
+              <Text h3>Decentralized Exchange on Order Book</Text>
+              <Text h6>powered by Ethereum</Text>
+            </Grid>
+          </Row>
+          <Row gap={5}>
+            <Grid>
+              <Text h1>Development</Text>
+              <Text h3>
+                Become a developer and contribute to the Coinomicon DEX.
+              </Text>
+            </Grid>
+            <Grid xs={6}>
+              <InfoCard
+                label="Development"
+                title="Contribute to the project or report an issue to make it better."
+                imageUrl="tail.jpg"
+                buttonText="contact us"
+                buttonLink={routes.contact}
+              />
+            </Grid>
+          </Row>
         </Grid.Container>
       </Container>
     </Container>
