@@ -21,5 +21,14 @@ Decentralized Exchange with Order Book.
 ### Frontend
 
 -   [ ] Front page
+    -   [x] Navbar
+    -   [x] Info cards
+    -   [x] Links
+    -   [ ] Connect wallet button
 -   [ ] Exchange page
--   [ ] Create exchange component
+    -   [ ] Create exchange component
+-   [ ] Docs page
+    -   [ ] Getting started
+    -   [ ] Advanced
+-   [ ] Contacts page
+    -   [ ] Links to social media

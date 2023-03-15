@@ -16,21 +16,22 @@ import InfoCard from '../components/InfoCard'
 
 const inter = Inter({ subsets: ['latin'] })
 
-// TODO: add links
 const routes = {
-  app: 'exchange',
-  docs: 'docs',
-  contact: 'contacts',
+  app: '/exchange',
+  docs: '/docs',
+  contact: '/contacts',
 }
 
 export default function Home() {
   return (
     <Container>
-      <Navbar isCompact variant="static">
+      <Navbar isBordered isCompact variant="static">
         <Navbar.Brand>
-          <Text b color="inherit">
-            Coinomicon
-          </Text>
+          <Link href="/">
+            <Text h4 b color="white">
+              Coinomicon
+            </Text>
+          </Link>
         </Navbar.Brand>
         <Navbar.Content>
           <Navbar.Link href={routes.app}>Launch App</Navbar.Link>
@@ -76,6 +77,7 @@ export default function Home() {
                 size={70}
                 css={{
                   textAlign: 'center',
+                  textGradient: '45deg, $blue600 -20%, $pink600 50%',
                 }}
               >
                 Decentralized Exchange
@@ -85,13 +87,19 @@ export default function Home() {
                 size={70}
                 css={{
                   textAlign: 'center',
+                  textGradient: '45deg, $purple600 -20%, $pink600 100%',
                 }}
               >
                 For everyone
               </Text>
               <Row justify="center">
                 <Link href={routes.app}>
-                  <Button shadow color="gradient" size="md">
+                  <Button
+                    shadow
+                    color="gradient"
+                    size="md"
+                    css={{ marginTop: '10px' }}
+                  >
                     Get started
                   </Button>
                 </Link>
@@ -102,7 +110,7 @@ export default function Home() {
 
         <Spacer y={12} />
 
-        <Grid.Container gap={8} justify="center">
+        <Grid.Container gap={8} justify="center" css={{ paddingBottom: '50%' }}>
           <Row gap={5}>
             <Grid>
               <Text h1>Jump in</Text>
