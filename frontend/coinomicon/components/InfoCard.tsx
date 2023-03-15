@@ -1,6 +1,6 @@
 import { Card, Text, Row, Col, Button, Link } from '@nextui-org/react'
 
-type Props = {
+interface Props {
   title: string
   label: string
   imageUrl: string

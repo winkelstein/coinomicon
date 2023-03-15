@@ -1,5 +1,4 @@
 import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
 import {
   Button,
   Col,
@@ -13,6 +12,7 @@ import {
   Spacer,
 } from '@nextui-org/react'
 import InfoCard from '../components/InfoCard'
+import { useState, useEffect } from 'react'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -53,10 +53,6 @@ export default function Home() {
           >
             <Image src="icons/telegram_24.png" alt="tg_link"></Image>
           </Navbar.Link>
-          {/* TODO: add functionality */}
-          <Button auto color="primary" bordered>
-            Connect wallet
-          </Button>
         </Navbar.Content>
       </Navbar>
 

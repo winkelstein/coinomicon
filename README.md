@@ -24,10 +24,13 @@ Decentralized Exchange with Order Book.
     -   [x] Navbar
     -   [x] Info cards
     -   [x] Links
-    -   [ ] Connect wallet button
     -   [ ] Footer
 -   [ ] Exchange page
-    -   [ ] Create exchange component
+    -   [ ] Navbar
+    -   [x] Connect to ethereum
+    -   [ ] Create exchange
+    -   [ ] Get exchange
+    -   [ ] Trade
 -   [ ] Docs page
     -   [ ] Getting started
     -   [ ] Advanced
