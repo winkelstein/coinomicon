@@ -38,10 +38,18 @@ export default function Home() {
           <Navbar.Link href={routes.contact}>Contact Us</Navbar.Link>
         </Navbar.Content>
         <Navbar.Content>
-          <Navbar.Link href="https://github.com/treug0lnik041/coinomicon">
+          <Navbar.Link
+            href="https://github.com/treug0lnik041/coinomicon"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <Image src="icons/github_24.png" alt="gh_link"></Image>
           </Navbar.Link>
-          <Navbar.Link href="https://t.me/treug0lnik">
+          <Navbar.Link
+            href="https://t.me/treug0lnik"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <Image src="icons/telegram_24.png" alt="tg_link"></Image>
           </Navbar.Link>
           {/* TODO: add functionality */}
