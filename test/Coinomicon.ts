@@ -25,7 +25,7 @@ describe("Coinomicon", function () {
         const token = await Token.deploy("3000000000000");
 
         const ExchangeContract = await ethers.getContractFactory("CoinomiconExchangeImpl");
-        await coinomicon.createExchange(token.address);
+        await coinomicon.createExchange(token.address, 1);
         const exchangeAddress = await coinomicon.getExchange(token.address);
         const exchange = await ExchangeContract.attach(exchangeAddress);
 
@@ -49,7 +49,7 @@ describe("Coinomicon", function () {
             const Token = await ethers.getContractFactory("TestToken");
             const token = await Token.deploy("1000000000");
 
-            await expect(coinomicon.createExchange(token.address)).to.emit(
+            await expect(coinomicon.createExchange(token.address, 1)).to.emit(
                 coinomicon,
                 "ExchangeCreated"
             );
@@ -61,7 +61,7 @@ describe("Coinomicon", function () {
             const Token = await ethers.getContractFactory("TestToken");
             const token = await Token.deploy("1000000000");
 
-            await coinomicon.createExchange(token.address);
+            await coinomicon.createExchange(token.address, 1);
 
             const ExchangeContract = await ethers.getContractFactory("CoinomiconExchangeImpl");
             const exchangeAddress = await coinomicon.getExchange(token.address);
@@ -76,13 +76,13 @@ describe("Coinomicon", function () {
             const Token = await ethers.getContractFactory("TestToken");
             const token = await Token.deploy("1000000000");
 
-            await coinomicon.createExchange(token.address);
+            await coinomicon.createExchange(token.address, 1);
 
-            await expect(coinomicon.createExchange(token.address)).to.be.revertedWith(
+            await expect(coinomicon.createExchange(token.address, 1)).to.be.revertedWith(
                 "Exchange already exists"
             );
             await expect(
-                coinomicon.createExchange(ethers.constants.AddressZero)
+                coinomicon.createExchange(ethers.constants.AddressZero, 1)
             ).to.be.revertedWith("Invalid token address");
         });
     });
@@ -124,7 +124,7 @@ describe("Coinomicon", function () {
                 const _Token = await ethers.getContractFactory("TestToken");
                 const _token = await _Token.deploy(80000);
 
-                await expect(coinomicon.createExchange(_token.address)).to.revertedWith(
+                await expect(coinomicon.createExchange(_token.address, 1)).to.revertedWith(
                     "Invalid implementation"
                 );
             });

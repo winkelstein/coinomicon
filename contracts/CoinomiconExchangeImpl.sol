@@ -14,6 +14,7 @@ contract CoinomiconExchangeImpl is ICoinomiconExchange {
     address public token;
     address factory;
     Order[] public orderBook;
+    uint256 startingPrice;
 
     /// @notice gets order book length
     function getOrderCount() external view override returns (uint256) {
@@ -102,7 +103,7 @@ contract CoinomiconExchangeImpl is ICoinomiconExchange {
                 j++;
             }
         }
-
+        if (j == 1) return startingPrice;
         return sum.div(j);
     }
 

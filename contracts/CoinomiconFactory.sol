@@ -25,11 +25,11 @@ contract CoinomiconFactory is ICoinomiconFactory, Ownable {
     /// @notice creates new exchange and pushes it to exchanges mapping
     /// @param _token Token address
     /// @dev this function is really gas expensive because it is deploys new contract (Exchange contract)
-    function createExchange(address _token) external returns (address) {
+    function createExchange(address _token, uint256 startingPrice) external returns (address) {
         require(_getExchangeImplementation() != address(0), "Invalid implementation");
         require(_token != address(0), "Invalid token address");
         require(exchanges[_token] == address(0), "Exchange already exists");
-        CoinomiconExchange newExchange = new CoinomiconExchange(_token);
+        CoinomiconExchange newExchange = new CoinomiconExchange(_token, startingPrice);
         exchanges[_token] = address(newExchange);
         emit ExchangeCreated(address(newExchange), _token);
         return address(newExchange);

@@ -20,8 +20,9 @@ contract CoinomiconExchange {
     address public token;
     address factory;
     Order[] public orderBook;
+    uint256 startingPrice;
 
-    constructor(address _token) {
+    constructor(address _token, uint256 _startingPrice) {
         require(_token != address(0), "Invalid token address");
         require(
             msg.sender.code.length > 0,
@@ -29,6 +30,7 @@ contract CoinomiconExchange {
         );
         token = _token;
         factory = msg.sender;
+        startingPrice = _startingPrice;
     }
 
     function _getImplementation() private view returns (address) {

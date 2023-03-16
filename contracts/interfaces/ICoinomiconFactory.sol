@@ -6,7 +6,7 @@ interface ICoinomiconFactory {
 
     function _setExchangeImplementation(address implementation) external;
 
-    function createExchange(address _ERC20ContractAddress) external returns (address);
+    function createExchange(address _ERC20ContractAddress, uint256 _startingPrice) external returns (address);
 
     function getExchange(address _ERC20ContractAddress) external view returns (address);
 
