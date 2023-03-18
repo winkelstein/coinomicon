@@ -11,7 +11,7 @@ import {
   Row,
   Spacer,
 } from '@nextui-org/react'
-import InfoCard from '../components/InfoCard'
+import InfoCard from '@/components/InfoCard'
 import { useState, useEffect } from 'react'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -58,7 +58,6 @@ export default function Home() {
 
       <Container
         css={{
-          height: '100%',
           backgroundImage: 'url(headlights.jpg)',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -151,6 +150,13 @@ export default function Home() {
             </Grid>
           </Row>
         </Grid.Container>
+      </Container>
+
+      <Container
+        css={{ position: 'absolute', bottom: 0, width: '100%', height: '30px' }}
+      >
+        <Text b>Coinomicon.</Text>
+        <Text>Made by treug0lnik. MIT License.</Text>
       </Container>
     </Container>
   )

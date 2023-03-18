@@ -9,6 +9,7 @@ import {
   Input,
   Link,
 } from '@nextui-org/react'
+import { SearchIcon } from '@/components/icons/SearchIcon'
 
 const routes = {
   app: '/exchange',
@@ -57,6 +58,7 @@ export default function Docs() {
           >
             <Input
               clearable
+              contentLeft={<SearchIcon size={16} />}
               contentLeftStyling={false}
               css={{
                 w: '100%',

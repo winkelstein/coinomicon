@@ -20,11 +20,12 @@ Decentralized Exchange with Order Book.
 
 ### Frontend
 
--   [ ] Front page
+-   [ ] Set icon
+-   [x] Front page
     -   [x] Navbar
     -   [x] Info cards
     -   [x] Links
-    -   [ ] Footer
+    -   [x] Footer
 -   [ ] Exchange page
     -   [ ] Navbar
     -   [x] Connect to ethereum

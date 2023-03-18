@@ -1,36 +1,78 @@
-import { Container, Text, Navbar, Button, Link, Input } from '@nextui-org/react'
+import {
+  Container,
+  Text,
+  Navbar,
+  Button,
+  Link,
+  Input,
+  Grid,
+  Col,
+  Card,
+  Radio,
+} from '@nextui-org/react'
 import { useEffect, useState } from 'react'
 import { ethers } from 'ethers'
 import config from '@/web3-api/config.json'
-import abi from '@/web3-api/abis/CoinomiconFactory.json'
+import factory_abi from '@/web3-api/abis/CoinomiconFactory.json'
+import exchange_abi from '@/web3-api/abis/CoinomiconExchangeImpl.json'
+import erc20_abi from '@/web3-api/abis/ERC20.json'
 
-const popularCoinAddresses = {
+import { SearchIcon } from '@/components/icons/SearchIcon'
+
+/*const popularCoinAddresses = {
   USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   HEX: '0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39',
   MATIC: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0',
   USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
   BNB: '0xB8c77482e45F1F44dE1745F52C74426C631bDD52',
   LINK: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
-}
+}*/
 
 export default function Exchange() {
   const [provider, setProvider] = useState<ethers.BrowserProvider | undefined>(
     undefined,
   )
-  const [account, setAccount] = useState<ethers.JsonRpcSigner | undefined>(
-    undefined,
-  )
+  const [currentAccount, setCurrentAccount] = useState<
+    ethers.JsonRpcSigner | undefined
+  >(undefined)
   const [coinomiconFactory, setCoinomiconFactory] = useState<
     ethers.Contract | undefined
   >(undefined)
 
   const [currentExchange, setCurrentExchange] = useState<
     ethers.Contract | undefined
+  >(undefined)
+  const [currentToken, setCurrentToken] = useState<
+    ethers.Contract | undefined
   >()
+
+  const [currentSymbol, setCurrentSymbol] = useState<string>('')
+  const [balance, setBalance] = useState<string | bigint>('')
+  const [tokenBalance, setTokenBalance] = useState<string | bigint>('')
+  const [marketOrLimit, setMarketOrLimit] = useState('market')
 
   useEffect(() => {
     setProvider(new ethers.BrowserProvider((window as any).ethereum))
   }, [])
+
+  useEffect(() => {
+    if (currentAccount) {
+      coinomiconFactory?.connect(currentAccount)
+      currentExchange?.connect(currentAccount)
+      currentToken?.connect(currentAccount)
+      provider
+        ?.getBalance(currentAccount.address)
+        .then((value) => setBalance(ethers.formatEther(value.toString())))
+      currentToken
+        ?.balanceOf(currentAccount.address)
+        .then(async (value) =>
+          setTokenBalance(
+            ethers.formatUnits(value.toString(), await currentToken.decimals()),
+          ),
+        )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentAccount])
 
   const connectToMetamask = async () => {
     if (typeof (window as any).ethereum == 'undefined') {
@@ -38,11 +80,15 @@ export default function Exchange() {
       console.log('Metamask is not installed')
       return
     }
-    if (account === undefined) {
-      setAccount(await provider?.getSigner())
-      ;(window as any).ethereum.on('accountsChanged', async () =>
-        setAccount(await provider?.getSigner()),
-      )
+    if (currentAccount === undefined) {
+      const account = await provider?.getSigner()
+      setCurrentAccount(account)
+      provider
+        ?.getBalance((account as unknown as ethers.JsonRpcSigner).address)
+        .then((value) => setBalance(ethers.formatEther(value.toString())))
+      ;(window as any).ethereum.on('accountsChanged', async () => {
+        setCurrentAccount(await provider?.getSigner())
+      })
       ;(window as any).ethereum.on('chainChanged', () => {
         /* TODO: Modal to change chain to the correct */
         alert('Do not change you chain to avoid losses')
@@ -54,19 +100,41 @@ export default function Exchange() {
         const coinomiconFactory = new ethers.Contract(
           config[chainId as keyof typeof config].CoinomiconFactory
             .address as string,
-          abi.abi,
-          provider,
+          factory_abi.abi,
+          account,
         )
+        const tokenContract = new ethers.Contract(
+          config[chainId as keyof typeof config].DefaultToken.address,
+          erc20_abi,
+          account,
+        )
+        tokenContract
+          ?.balanceOf((account as unknown as ethers.JsonRpcSigner).address)
+          .then(async (value) =>
+            setTokenBalance(
+              ethers.formatUnits(
+                value.toString(),
+                await tokenContract.decimals(),
+              ),
+            ),
+          )
+        tokenContract?.symbol().then(setCurrentSymbol)
+
+        coinomiconFactory
+          .getExchange(await tokenContract.getAddress())
+          .then((address) =>
+            setCurrentExchange(
+              new ethers.Contract(address, exchange_abi.abi, account),
+            ),
+          )
+        setCurrentToken(tokenContract)
         setCoinomiconFactory(coinomiconFactory)
-        console.log(
-          `Connecting to CoinomiconFactory contract. Current implementation address: ${await coinomiconFactory._getExchangeImplementation()}`,
-        )
       }
     }
   }
 
   return (
-    <Container>
+    <Container css={{ height: '100%' }}>
       <Navbar isBordered isCompact variant="static">
         <Navbar.Brand>
           <Link href="/">
@@ -87,6 +155,7 @@ export default function Exchange() {
           >
             <Input
               clearable
+              contentLeft={<SearchIcon size={16} />}
               contentLeftStyling={false}
               css={{
                 w: '100%',
@@ -100,17 +169,73 @@ export default function Exchange() {
                 },
               }}
               placeholder="Search token..."
+              aria-label="token"
             />
           </Navbar.Item>
           <Button auto color="primary" bordered onPress={connectToMetamask}>
-            {account
-              ? account.address.substring(0, 6) +
+            {currentAccount
+              ? currentAccount.address.substring(0, 6) +
                 '....' +
-                account.address.substring(38)
+                currentAccount.address.substring(38)
               : 'Connect wallet'}
           </Button>
         </Navbar.Content>
       </Navbar>
+
+      <Container>
+        <Grid.Container justify="center" css={{ marginTop: '10%' }}>
+          <Grid alignItems="center">
+            <Card>
+              <Card.Header>
+                <Col>
+                  <Text>ETH/{currentSymbol}</Text>
+                  <Text>Balance in ETH: {balance.toString()}</Text>
+                  <Text>
+                    Balance in {currentSymbol}: {tokenBalance.toString()}
+                  </Text>
+                </Col>
+              </Card.Header>
+              <Card.Body>
+                <Radio.Group
+                  orientation="horizontal"
+                  defaultValue="market"
+                  size="md"
+                  onChange={setMarketOrLimit}
+                >
+                  <Radio value="market">Market</Radio>
+                  <Radio value="limit">Limit</Radio>
+                </Radio.Group>
+                <Input
+                  clearable
+                  bordered
+                  placeholder="0.000"
+                  label="Amount"
+                  pattern="^[0-9]*[.,]?[0-9]*$"
+                  inputMode="decimal"
+                />
+                {marketOrLimit === 'limit' ? (
+                  <Input
+                    clearable
+                    bordered
+                    placeholder="0.000"
+                    label="Limit price"
+                    pattern="^[0-9]*[.,]?[0-9]*$"
+                    inputMode="decimal"
+                  />
+                ) : undefined}
+              </Card.Body>
+              <Card.Footer>
+                <Button color="success" bordered>
+                  Buy
+                </Button>
+                <Button color="error" bordered>
+                  Sell
+                </Button>
+              </Card.Footer>
+            </Card>
+          </Grid>
+        </Grid.Container>
+      </Container>
     </Container>
   )
 }
