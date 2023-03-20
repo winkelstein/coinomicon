@@ -9,6 +9,8 @@ import {
   Col,
   Card,
   Radio,
+  Table,
+  Modal,
 } from '@nextui-org/react'
 import { useEffect, useState } from 'react'
 import { ethers } from 'ethers'
@@ -18,6 +20,8 @@ import exchange_abi from '@/web3-api/abis/CoinomiconExchangeImpl.json'
 import erc20_abi from '@/web3-api/abis/ERC20.json'
 
 import { SearchIcon } from '@/components/icons/SearchIcon'
+import BuyModal from '@/components/BuyModal'
+import SellModal from '@/components/SellModal'
 
 /*const popularCoinAddresses = {
   USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -27,6 +31,9 @@ import { SearchIcon } from '@/components/icons/SearchIcon'
   BNB: '0xB8c77482e45F1F44dE1745F52C74426C631bDD52',
   LINK: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
 }*/
+
+// TODO: modal to change network
+// TODO:
 
 export default function Exchange() {
   const [provider, setProvider] = useState<ethers.BrowserProvider | undefined>(
@@ -42,14 +49,20 @@ export default function Exchange() {
   const [currentExchange, setCurrentExchange] = useState<
     ethers.Contract | undefined
   >(undefined)
-  const [currentToken, setCurrentToken] = useState<
-    ethers.Contract | undefined
-  >()
+  const [currentToken, setCurrentToken] = useState<ethers.Contract | undefined>(
+    undefined,
+  )
 
   const [currentSymbol, setCurrentSymbol] = useState<string>('')
   const [balance, setBalance] = useState<string | bigint>('')
   const [tokenBalance, setTokenBalance] = useState<string | bigint>('')
   const [marketOrLimit, setMarketOrLimit] = useState('market')
+
+  const [modalBuyVisible, setModalBuyVisible] = useState(false)
+  const [modalSellVisible, setModalSellVisible] = useState(false)
+
+  const [amount, setAmount] = useState<string>('')
+  const [price, setPrice] = useState<string>('')
 
   useEffect(() => {
     setProvider(new ethers.BrowserProvider((window as any).ethereum))
@@ -89,9 +102,12 @@ export default function Exchange() {
       ;(window as any).ethereum.on('accountsChanged', async () => {
         setCurrentAccount(await provider?.getSigner())
       })
-      ;(window as any).ethereum.on('chainChanged', () => {
+      ;(window as any).ethereum.on('chainChanged', async () => {
         /* TODO: Modal to change chain to the correct */
-        alert('Do not change you chain to avoid losses')
+        await (window as any).ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x7A69' }], // chainId must be in hexadecimal numbers
+        })
       })
       console.log('Connected to Metamask')
       const network = await provider?.getNetwork()
@@ -135,7 +151,12 @@ export default function Exchange() {
 
   return (
     <Container css={{ height: '100%' }}>
-      <Navbar isBordered isCompact variant="static">
+      <Navbar
+        isBordered
+        isCompact
+        variant="static"
+        css={{ marginBottom: '10px' }}
+      >
         <Navbar.Brand>
           <Link href="/">
             <Text h4 b color="white">
@@ -183,18 +204,47 @@ export default function Exchange() {
       </Navbar>
 
       <Container>
-        <Grid.Container justify="center" css={{ marginTop: '10%' }}>
-          <Grid alignItems="center">
+        <BuyModal
+          amount={amount}
+          price={price}
+          visible={modalBuyVisible}
+          setVisible={setModalBuyVisible}
+          marketOrLimit={marketOrLimit}
+          signer={currentAccount}
+          exchange={currentExchange}
+          token={currentToken}
+        />
+
+        <SellModal
+          visible={modalSellVisible}
+          setVisible={setModalSellVisible}
+          marketOrLimit={marketOrLimit}
+          signer={currentAccount}
+          exchange={currentExchange}
+          token={currentToken}
+        />
+
+        <Grid.Container>
+          <Grid>
             <Card>
               <Card.Header>
-                <Col>
-                  <Text>ETH/{currentSymbol}</Text>
-                  <Text>Balance in ETH: {balance.toString()}</Text>
-                  <Text>
-                    Balance in {currentSymbol}: {tokenBalance.toString()}
+                {currentAccount ? (
+                  <Col>
+                    <Text b h4>
+                      ETH/{currentSymbol}
+                    </Text>
+                    <Text>Balance in ETH: {balance.toString()}</Text>
+                    <Text>
+                      Balance in {currentSymbol}: {tokenBalance.toString()}
+                    </Text>
+                  </Col>
+                ) : (
+                  <Text b h2>
+                    Connect wallet
                   </Text>
-                </Col>
+                )}
               </Card.Header>
+              <Card.Divider />
               <Card.Body>
                 <Radio.Group
                   orientation="horizontal"
@@ -209,29 +259,89 @@ export default function Exchange() {
                   clearable
                   bordered
                   placeholder="0.000"
-                  label="Amount"
+                  label={'Amount (' + currentSymbol + ')'}
                   pattern="^[0-9]*[.,]?[0-9]*$"
                   inputMode="decimal"
+                  onChange={(e) => setAmount(e.target.value)}
+                  disabled={currentAccount ? false : true}
                 />
                 {marketOrLimit === 'limit' ? (
                   <Input
                     clearable
                     bordered
                     placeholder="0.000"
-                    label="Limit price"
+                    label="Limit price (ETH)"
                     pattern="^[0-9]*[.,]?[0-9]*$"
                     inputMode="decimal"
+                    onChange={(e) => setPrice(e.target.value)}
+                    disabled={currentAccount ? false : true}
                   />
                 ) : undefined}
               </Card.Body>
               <Card.Footer>
-                <Button color="success" bordered>
+                <Button
+                  color="success"
+                  bordered
+                  onPress={() => {
+                    if (
+                      marketOrLimit == 'limit' &&
+                      amount.length > 0 &&
+                      price.length > 0
+                    )
+                      setModalBuyVisible(true)
+                    else if (marketOrLimit == 'market' && amount.length > 0)
+                      setModalBuyVisible(true)
+                  }}
+                  disabled={currentAccount ? false : true}
+                >
                   Buy
                 </Button>
-                <Button color="error" bordered>
+                <Button
+                  color="error"
+                  bordered
+                  onPress={() => {
+                    if (
+                      marketOrLimit == 'limit' &&
+                      amount.length > 0 &&
+                      price.length > 0
+                    )
+                      setModalSellVisible(true)
+                    else if (marketOrLimit == 'market' && amount.length > 0)
+                      setModalSellVisible(true)
+                  }}
+                  disabled={currentAccount ? false : true}
+                >
                   Sell
                 </Button>
               </Card.Footer>
+              <Card.Divider />
+              <Card.Body>
+                <Table compact>
+                  <Table.Header>
+                    <Table.Column>Size</Table.Column>
+                    <Table.Column>Price</Table.Column>
+                  </Table.Header>
+                  <Table.Body>
+                    {/* TODO: Add functionality */}
+                    <Table.Row key="1">
+                      <Table.Cell>0.00</Table.Cell>
+                      <Table.Cell>0.00</Table.Cell>
+                    </Table.Row>
+                    <Table.Row key="2">
+                      <Table.Cell>0.00</Table.Cell>
+                      <Table.Cell>0.00</Table.Cell>
+                    </Table.Row>
+                    <Table.Row key="3">
+                      <Table.Cell>0.00</Table.Cell>
+                      <Table.Cell>0.00</Table.Cell>
+                    </Table.Row>
+                    <Table.Row key="4">
+                      <Table.Cell>0.00</Table.Cell>
+                      <Table.Cell>0.00</Table.Cell>
+                    </Table.Row>
+                  </Table.Body>
+                </Table>
+              </Card.Body>
             </Card>
           </Grid>
         </Grid.Container>

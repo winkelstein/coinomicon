@@ -31,7 +31,8 @@ Decentralized Exchange with Order Book.
     -   [x] Connect to ethereum
     -   [ ] Create exchange
     -   [ ] Get exchange
-    -   [ ] Trade
+    -   [ ] Trade card
+    -   [ ] Trading chart
 -   [ ] Docs page
     -   [ ] Getting started
     -   [ ] Advanced
