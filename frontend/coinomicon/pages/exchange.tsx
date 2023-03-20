@@ -206,7 +206,9 @@ export default function Exchange() {
       <Container>
         <BuyModal
           amount={amount}
+          setAmount={setAmount}
           price={price}
+          setPrice={setPrice}
           visible={modalBuyVisible}
           setVisible={setModalBuyVisible}
           marketOrLimit={marketOrLimit}
@@ -260,8 +262,7 @@ export default function Exchange() {
                   bordered
                   placeholder="0.000"
                   label={'Amount (' + currentSymbol + ')'}
-                  pattern="^[0-9]*[.,]?[0-9]*$"
-                  inputMode="decimal"
+                  type="number"
                   onChange={(e) => setAmount(e.target.value)}
                   disabled={currentAccount ? false : true}
                 />
@@ -271,8 +272,7 @@ export default function Exchange() {
                     bordered
                     placeholder="0.000"
                     label="Limit price (ETH)"
-                    pattern="^[0-9]*[.,]?[0-9]*$"
-                    inputMode="decimal"
+                    type="number"
                     onChange={(e) => setPrice(e.target.value)}
                     disabled={currentAccount ? false : true}
                   />
@@ -282,34 +282,28 @@ export default function Exchange() {
                 <Button
                   color="success"
                   bordered
-                  onPress={() => {
-                    if (
-                      marketOrLimit == 'limit' &&
-                      amount.length > 0 &&
-                      price.length > 0
-                    )
-                      setModalBuyVisible(true)
-                    else if (marketOrLimit == 'market' && amount.length > 0)
-                      setModalBuyVisible(true)
-                  }}
-                  disabled={currentAccount ? false : true}
+                  onPress={() => setModalBuyVisible(true)}
+                  disabled={
+                    currentAccount && amount.length > 0
+                      ? marketOrLimit == 'limit'
+                        ? price.length == 0
+                        : false
+                      : true
+                  }
                 >
                   Buy
                 </Button>
                 <Button
                   color="error"
                   bordered
-                  onPress={() => {
-                    if (
-                      marketOrLimit == 'limit' &&
-                      amount.length > 0 &&
-                      price.length > 0
-                    )
-                      setModalSellVisible(true)
-                    else if (marketOrLimit == 'market' && amount.length > 0)
-                      setModalSellVisible(true)
-                  }}
-                  disabled={currentAccount ? false : true}
+                  onPress={() => setModalSellVisible(true)}
+                  disabled={
+                    currentAccount && amount.length > 0
+                      ? marketOrLimit == 'limit'
+                        ? price.length == 0
+                        : false
+                      : true
+                  }
                 >
                   Sell
                 </Button>

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Modal, Text, Input, Button } from '@nextui-org/react'
+import { Modal, Text, Input, Button, Loading } from '@nextui-org/react'
 import { ethers } from 'ethers'
 
 interface Props {
   amount: string
+  setAmount: React.Dispatch<React.SetStateAction<string>>
   price: string
+  setPrice: React.Dispatch<React.SetStateAction<string>>
   visible: boolean
   setVisible: React.Dispatch<React.SetStateAction<boolean>>
   marketOrLimit: string
@@ -13,10 +15,14 @@ interface Props {
   token: ethers.Contract | undefined
 }
 
+// TODO: parse token units
+
 export default function BuyModal(props: Props) {
   const {
     amount,
+    setAmount,
     price,
+    setPrice,
     visible,
     setVisible,
     marketOrLimit,
@@ -25,14 +31,44 @@ export default function BuyModal(props: Props) {
     token,
   } = props
   const [total, setTotal] = useState<string>('0')
+  const [isLoading, setLoading] = useState(false)
 
   useEffect(() => {
     if (exchange && visible && marketOrLimit == 'market' && amount.length > 0) {
-      exchange
-        .cost(amount, '0', false, true)
-        .then(([available, cost]) => setTotal(cost))
+      ;(async () => {
+        let [available, cost] = await exchange.cost(amount, '0', false, true)
+        if (available == 0) cost = (await exchange.bestPrice()) * BigInt(amount)
+        setTotal(ethers.formatEther(cost))
+      })()
     }
   }, [amount, exchange, marketOrLimit, visible])
+
+  const buyLimit = async () => {
+    const cost = BigInt(amount) * BigInt(price)
+    await exchange?.submitLimitOrder(amount, price, true, { value: cost })
+  }
+
+  const buyMarket = async () => {
+    if (exchange) {
+      let [available, cost] = await exchange.cost(amount, '0', false, true)
+      if (available == 0) cost = (await exchange.bestPrice()) * BigInt(amount)
+      await exchange?.submitMarketOrder(amount, true, { value: cost })
+    }
+  }
+
+  const buyHandler = () => {
+    setLoading(true)
+    if (marketOrLimit == 'limit')
+      buyLimit().then(() => {
+        setVisible(false)
+        setLoading(false)
+      })
+    else
+      buyLimit().then(() => {
+        setVisible(false)
+        setLoading(false)
+      })
+  }
 
   return (
     <Modal
@@ -53,9 +89,9 @@ export default function BuyModal(props: Props) {
           bordered
           placeholder="0.000"
           label="Amount"
-          pattern="^[0-9]*[.,]?[0-9]*$"
-          inputMode="decimal"
+          type="number"
           initialValue={amount}
+          onChange={(e) => setAmount(e.target.value)}
         />
         {marketOrLimit === 'limit' ? (
           <Input
@@ -63,9 +99,11 @@ export default function BuyModal(props: Props) {
             bordered
             placeholder="0.000"
             label="Limit price"
-            pattern="^[0-9]*[.,]?[0-9]*$"
-            inputMode="decimal"
+            type="number"
             initialValue={price}
+            onChange={(e) =>
+              setPrice(ethers.parseEther(e.target.value).toString())
+            }
           />
         ) : (
           `Total cost: ${total} ETH`
@@ -76,8 +114,22 @@ export default function BuyModal(props: Props) {
           Close
         </Button>
         {/* TODO: Add functionality */}
-        <Button auto onPress={() => setVisible(false)}>
-          Buy
+        <Button
+          auto
+          disabled={
+            signer && amount.length > 0
+              ? marketOrLimit == 'limit'
+                ? price.length == 0
+                : false
+              : true
+          }
+          onPress={() => buyHandler()}
+        >
+          {isLoading ? (
+            <Loading type="spinner" color="currentColor" size="sm" />
+          ) : (
+            'Buy'
+          )}
         </Button>
       </Modal.Footer>
     </Modal>
