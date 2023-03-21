@@ -33,7 +33,6 @@ import SellModal from '@/components/SellModal'
 }*/
 
 // TODO: modal to change network
-// TODO:
 
 export default function Exchange() {
   const [provider, setProvider] = useState<ethers.BrowserProvider | undefined>(
@@ -120,7 +119,7 @@ export default function Exchange() {
           account,
         )
         const tokenContract = new ethers.Contract(
-          config[chainId as keyof typeof config].DefaultToken.address,
+          config[chainId as keyof typeof config]['tokens'][0].address,
           erc20_abi,
           account,
         )

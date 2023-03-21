@@ -15,8 +15,6 @@ interface Props {
   token: ethers.Contract | undefined
 }
 
-// TODO: parse token units
-
 export default function BuyModal(props: Props) {
   const {
     amount,
@@ -30,44 +28,75 @@ export default function BuyModal(props: Props) {
     exchange,
     token,
   } = props
+  const [decimals, setDecimals] = useState(18)
   const [total, setTotal] = useState<string>('0')
   const [isLoading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (exchange && visible && marketOrLimit == 'market' && amount.length > 0) {
-      ;(async () => {
-        let [available, cost] = await exchange.cost(amount, '0', false, true)
-        if (available == 0) cost = (await exchange.bestPrice()) * BigInt(amount)
-        setTotal(ethers.formatEther(cost))
-      })()
+    token?.decimals().then(setDecimals)
+  }, [token])
+
+  useEffect(() => {
+    if (exchange && visible && amount.length > 0) {
+      if (marketOrLimit == 'market') {
+        ;(async () => {
+          const _amount = parseTokenAmount(amount)
+          let [available, cost] = await exchange.cost(_amount, '0', false, true)
+          if (available == 0)
+            cost = BigInt(await exchange.bestPrice()) * _amount
+          setTotal(ethers.formatEther(cost))
+        })()
+      } else if (marketOrLimit == 'limit' && price.length > 0) {
+        ;(async () => {
+          const _amount = (await parseTokenAmount(amount)) ?? 0n
+          setTotal(ethers.formatEther(BigInt(_amount) * BigInt(price)))
+        })()
+      }
     }
-  }, [amount, exchange, marketOrLimit, visible])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amount, price, exchange, marketOrLimit, visible])
+
+  const parseTokenAmount = (value: string) => {
+    return ethers.parseUnits(value, decimals)
+  }
 
   const buyLimit = async () => {
-    const cost = BigInt(amount) * BigInt(price)
-    await exchange?.submitLimitOrder(amount, price, true, { value: cost })
+    const _amount = parseTokenAmount(amount)
+    const cost = _amount * BigInt(price)
+    await exchange?.submitLimitOrder(_amount, price, true, { value: cost })
   }
 
   const buyMarket = async () => {
     if (exchange) {
-      let [available, cost] = await exchange.cost(amount, '0', false, true)
-      if (available == 0) cost = (await exchange.bestPrice()) * BigInt(amount)
-      await exchange?.submitMarketOrder(amount, true, { value: cost })
+      const _amount = parseTokenAmount(amount)
+      let [available, cost] = await exchange.cost(_amount, '0', false, true)
+      if (available == 0) cost = (await exchange.bestPrice()) * _amount
+      await exchange?.submitMarketOrder(_amount, true, { value: cost })
     }
   }
 
   const buyHandler = () => {
     setLoading(true)
     if (marketOrLimit == 'limit')
-      buyLimit().then(() => {
-        setVisible(false)
-        setLoading(false)
-      })
+      buyLimit()
+        .then(() => {
+          setVisible(false)
+          setAmount('0')
+          setPrice('0')
+          setTotal('0')
+        })
+        .catch((reason) => console.error(reason))
+        .finally(() => setLoading(false))
     else
-      buyLimit().then(() => {
-        setVisible(false)
-        setLoading(false)
-      })
+      buyMarket()
+        .then(() => {
+          setVisible(false)
+          setAmount('0')
+          setPrice('0')
+          setTotal('0')
+        })
+        .catch((reason) => console.error(reason))
+        .finally(() => setLoading(false))
   }
 
   return (
@@ -98,22 +127,18 @@ export default function BuyModal(props: Props) {
             clearable
             bordered
             placeholder="0.000"
-            label="Limit price"
+            label="Limit price (ETH)"
             type="number"
             initialValue={price}
-            onChange={(e) =>
-              setPrice(ethers.parseEther(e.target.value).toString())
-            }
+            onChange={(e) => setPrice(e.target.value)}
           />
-        ) : (
-          `Total cost: ${total} ETH`
-        )}
+        ) : undefined}
+        <Text>{`Total cost: ${total} ETH`}</Text>
       </Modal.Body>
       <Modal.Footer>
         <Button auto flat color="error" onPress={() => setVisible(false)}>
           Close
         </Button>
-        {/* TODO: Add functionality */}
         <Button
           auto
           disabled={

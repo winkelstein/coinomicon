@@ -20,7 +20,7 @@ Decentralized Exchange with Order Book.
 
 ### Frontend
 
--   [ ] Set icon
+-   [x] Set icon
 -   [x] Front page
     -   [x] Navbar
     -   [x] Info cards
