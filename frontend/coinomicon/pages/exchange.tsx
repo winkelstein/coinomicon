@@ -261,9 +261,10 @@ export default function Exchange() {
                   bordered
                   placeholder="0.000"
                   label={'Amount (' + currentSymbol + ')'}
-                  type="number"
+                  type="text"
                   onChange={(e) => setAmount(e.target.value)}
                   disabled={currentAccount ? false : true}
+                  maxLength={20}
                 />
                 {marketOrLimit === 'limit' ? (
                   <Input
@@ -271,9 +272,10 @@ export default function Exchange() {
                     bordered
                     placeholder="0.000"
                     label="Limit price (ETH)"
-                    type="number"
+                    type="text"
                     onChange={(e) => setPrice(e.target.value)}
                     disabled={currentAccount ? false : true}
+                    maxLength={20}
                   />
                 ) : undefined}
               </Card.Body>

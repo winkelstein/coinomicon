@@ -49,7 +49,9 @@ export default function BuyModal(props: Props) {
       } else if (marketOrLimit == 'limit' && price.length > 0) {
         ;(async () => {
           const _amount = (await parseTokenAmount(amount)) ?? 0n
-          setTotal(ethers.formatEther(BigInt(_amount) * BigInt(price)))
+          const _total = ethers.parseEther(price) * _amount
+
+          setTotal(ethers.formatEther(_total))
         })()
       }
     }
@@ -62,8 +64,10 @@ export default function BuyModal(props: Props) {
 
   const buyLimit = async () => {
     const _amount = parseTokenAmount(amount)
-    const cost = _amount * BigInt(price)
-    await exchange?.submitLimitOrder(_amount, price, true, { value: cost })
+    const cost = _amount * ethers.parseEther(price)
+    await exchange?.submitLimitOrder(_amount, ethers.parseEther(price), true, {
+      value: cost,
+    })
   }
 
   const buyMarket = async () => {
@@ -118,9 +122,10 @@ export default function BuyModal(props: Props) {
           bordered
           placeholder="0.000"
           label="Amount"
-          type="number"
+          type="text"
           initialValue={amount}
           onChange={(e) => setAmount(e.target.value)}
+          maxLength={20}
         />
         {marketOrLimit === 'limit' ? (
           <Input
@@ -128,9 +133,10 @@ export default function BuyModal(props: Props) {
             bordered
             placeholder="0.000"
             label="Limit price (ETH)"
-            type="number"
+            type="text"
             initialValue={price}
             onChange={(e) => setPrice(e.target.value)}
+            maxLength={20}
           />
         ) : undefined}
         <Text>{`Total cost: ${total} ETH`}</Text>
