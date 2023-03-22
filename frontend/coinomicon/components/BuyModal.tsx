@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Modal, Text, Input, Button, Loading } from '@nextui-org/react'
+import { Modal, Text, Input, Button, Loading, Tooltip } from '@nextui-org/react'
 import { ethers } from 'ethers'
 
 interface Props {
@@ -31,6 +31,7 @@ export default function BuyModal(props: Props) {
   const [decimals, setDecimals] = useState(18)
   const [total, setTotal] = useState<string>('0')
   const [isLoading, setLoading] = useState(false)
+  const [available, setAvailable] = useState('0')
 
   useEffect(() => {
     token?.decimals().then(setDecimals)
@@ -41,14 +42,22 @@ export default function BuyModal(props: Props) {
       if (marketOrLimit == 'market') {
         ;(async () => {
           const _amount = parseTokenAmount(amount)
-          let [available, cost] = await exchange.cost(_amount, '0', false, true)
-          if (available == 0)
+          let [_available, cost] = await exchange.cost(
+            _amount,
+            '0',
+            false,
+            true,
+          )
+          setAvailable(ethers.formatUnits(_available, decimals))
+          if (_available == 0) {
             cost = BigInt(await exchange.bestPrice()) * _amount
+            setAvailable('0')
+          }
           setTotal(ethers.formatEther(cost))
         })()
       } else if (marketOrLimit == 'limit' && price.length > 0) {
         ;(async () => {
-          const _amount = (await parseTokenAmount(amount)) ?? 0n
+          const _amount = parseTokenAmount(amount)
           try {
             const _total = ethers.formatEther(
               ethers.parseEther(price) * _amount,
@@ -143,8 +152,10 @@ export default function BuyModal(props: Props) {
             onChange={(e) => setPrice(e.target.value)}
             maxLength={20}
           />
-        ) : undefined}
-        <Text>{`Total cost: ${total} ETH`}</Text>
+        ) : (
+          <Text>Available: {available}</Text>
+        )}
+        <Text>Total cost: {total} ETH</Text>
       </Modal.Body>
       <Modal.Footer>
         <Button auto flat color="error" onPress={() => setVisible(false)}>

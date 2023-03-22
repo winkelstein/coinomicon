@@ -285,18 +285,22 @@ export default function Exchange() {
                   disabled={currentAccount ? false : true}
                   maxLength={20}
                 />
-                {marketOrLimit === 'limit' ? (
-                  <Input
-                    clearable
-                    bordered
-                    placeholder="0.000"
-                    label="Limit price (ETH)"
-                    type="text"
-                    onChange={(e) => setPrice(e.target.value)}
-                    disabled={currentAccount ? false : true}
-                    maxLength={20}
-                  />
-                ) : undefined}
+                <Input
+                  clearable
+                  bordered
+                  placeholder={
+                    marketOrLimit === 'limit'
+                      ? '0.000'
+                      : 'unavailable in market mode'
+                  }
+                  label="Limit price (ETH)"
+                  type="text"
+                  onChange={(e) => setPrice(e.target.value)}
+                  disabled={
+                    currentAccount && marketOrLimit === 'limit' ? false : true
+                  }
+                  maxLength={20}
+                />
               </Card.Body>
               <Card.Footer>
                 <Button

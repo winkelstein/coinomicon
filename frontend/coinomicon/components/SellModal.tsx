@@ -53,7 +53,7 @@ export default function SellModal(props: Props) {
         })()
       } else if (marketOrLimit == 'limit' && price.length > 0) {
         ;(async () => {
-          const _amount = (await parseTokenAmount(amount)) ?? 0n
+          const _amount = parseTokenAmount(amount)
           try {
             const _total = ethers.formatEther(
               ethers.parseEther(price) * _amount,
