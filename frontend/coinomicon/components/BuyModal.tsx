@@ -49,9 +49,14 @@ export default function BuyModal(props: Props) {
       } else if (marketOrLimit == 'limit' && price.length > 0) {
         ;(async () => {
           const _amount = (await parseTokenAmount(amount)) ?? 0n
-          const _total = ethers.parseEther(price) * _amount
-
-          setTotal(ethers.formatEther(_total))
+          try {
+            const _total = ethers.formatEther(
+              ethers.parseEther(price) * _amount,
+            )
+            setTotal(_total)
+          } catch (error) {
+            setTotal('amount exceeds maximum')
+          }
         })()
       }
     }
@@ -148,7 +153,7 @@ export default function BuyModal(props: Props) {
         <Button
           auto
           disabled={
-            signer && amount.length > 0
+            signer && amount.length > 0 && total !== 'amount exceeds maximum'
               ? marketOrLimit == 'limit'
                 ? price.length == 0
                 : false
@@ -157,7 +162,7 @@ export default function BuyModal(props: Props) {
           onPress={() => buyHandler()}
         >
           {isLoading ? (
-            <Loading type="spinner" color="currentColor" size="sm" />
+            <Loading type="points" color="currentColor" size="sm" />
           ) : (
             'Buy'
           )}

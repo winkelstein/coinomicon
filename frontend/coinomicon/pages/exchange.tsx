@@ -105,7 +105,7 @@ export default function Exchange() {
         /* TODO: Modal to change chain to the correct */
         await (window as any).ethereum.request({
           method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x7A69' }], // chainId must be in hexadecimal numbers
+          params: [{ chainId: '0x7A69' }], // hardhat localhost
         })
       })
       console.log('Connected to Metamask')
@@ -217,6 +217,10 @@ export default function Exchange() {
         />
 
         <SellModal
+          amount={amount}
+          setAmount={setAmount}
+          price={price}
+          setPrice={setPrice}
           visible={modalSellVisible}
           setVisible={setModalSellVisible}
           marketOrLimit={marketOrLimit}
