@@ -60,7 +60,7 @@ export default function SellModal(props: Props) {
             )
             setTotal(_total)
           } catch (error) {
-            setTotal('amount exceeds maximum')
+            setTotal('amount exceeds minumum or maximum')
           }
         })()
       }

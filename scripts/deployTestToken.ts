@@ -17,7 +17,10 @@ async function main() {
     const testToken = await TestToken.deploy("100000000000000000000");
     await testToken.deployed();
 
-    await coinomicon.createExchange(testToken.address, ethers.utils.parseEther("0.0001"));
+    await coinomicon.createExchange(
+        testToken.address,
+        ethers.utils.parseEther("0.000000000000000001")
+    );
 
     console.log(
         `Coinomicon deployed to ${coinomicon.address}; Exchange implementation deployed to ${coinomiconExchangeImpl.address}; Test token address: ${testToken.address}`

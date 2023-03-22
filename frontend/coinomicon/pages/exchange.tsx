@@ -11,6 +11,8 @@ import {
   Radio,
   Table,
   Modal,
+  Row,
+  Spacer,
 } from '@nextui-org/react'
 import { useEffect, useState } from 'react'
 import { ethers } from 'ethers'
@@ -22,6 +24,7 @@ import erc20_abi from '@/web3-api/abis/ERC20.json'
 import { SearchIcon } from '@/components/icons/SearchIcon'
 import BuyModal from '@/components/BuyModal'
 import SellModal from '@/components/SellModal'
+import StockChart from '@/components/StockChart'
 
 /*const popularCoinAddresses = {
   USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -88,8 +91,7 @@ export default function Exchange() {
 
   const connectToMetamask = async () => {
     if (typeof (window as any).ethereum == 'undefined') {
-      /* TODO: Modal to install Metamask */
-      console.log('Metamask is not installed')
+      alert('This app requires Metamask Ethereum wallet')
       return
     }
     if (currentAccount === undefined) {
@@ -103,15 +105,23 @@ export default function Exchange() {
       })
       ;(window as any).ethereum.on('chainChanged', async () => {
         /* TODO: Modal to change chain to the correct */
+        alert(
+          'Coinomicon works only on Goerli testnet. Change chain to Goerli in Metamask.',
+        )
         await (window as any).ethereum.request({
           method: 'wallet_switchEthereumChain',
           params: [{ chainId: '0x7A69' }], // hardhat localhost
         })
+
+        /*await (window as any).ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x5' }], // goerli testnet
+        })*/
       })
       console.log('Connected to Metamask')
       const network = await provider?.getNetwork()
       const chainId = network?.chainId.toString()
-      if (chainId != undefined) {
+      if (chainId === '31337' || chainId === '5') {
         const coinomiconFactory = new ethers.Contract(
           config[chainId as keyof typeof config].CoinomiconFactory
             .address as string,
@@ -202,7 +212,7 @@ export default function Exchange() {
         </Navbar.Content>
       </Navbar>
 
-      <Container>
+      <Container css={{ height: '100%' }}>
         <BuyModal
           amount={amount}
           setAmount={setAmount}
@@ -229,7 +239,12 @@ export default function Exchange() {
           token={currentToken}
         />
 
-        <Grid.Container>
+        <Grid.Container
+          gap={1}
+          justify="flex-start"
+          css={{ height: '100%' }}
+          direction="row"
+        >
           <Grid>
             <Card>
               <Card.Header>
@@ -295,6 +310,7 @@ export default function Exchange() {
                         : false
                       : true
                   }
+                  css={{ marginRight: '5px' }}
                 >
                   Buy
                 </Button>
@@ -313,7 +329,11 @@ export default function Exchange() {
                   Sell
                 </Button>
               </Card.Footer>
-              <Card.Divider />
+            </Card>
+            <Card css={{ marginTop: '10px' }}>
+              <Card.Header>
+                <Text b>Trades</Text>
+              </Card.Header>
               <Card.Body>
                 <Table compact>
                   <Table.Header>
@@ -338,9 +358,38 @@ export default function Exchange() {
                       <Table.Cell>0.00</Table.Cell>
                       <Table.Cell>0.00</Table.Cell>
                     </Table.Row>
+                    <Table.Row key="5">
+                      <Table.Cell>0.00</Table.Cell>
+                      <Table.Cell>0.00</Table.Cell>
+                    </Table.Row>
+                    <Table.Row key="6">
+                      <Table.Cell>0.00</Table.Cell>
+                      <Table.Cell>0.00</Table.Cell>
+                    </Table.Row>
+                    <Table.Row key="7">
+                      <Table.Cell>0.00</Table.Cell>
+                      <Table.Cell>0.00</Table.Cell>
+                    </Table.Row>
+                    <Table.Row key="8">
+                      <Table.Cell>0.00</Table.Cell>
+                      <Table.Cell>0.00</Table.Cell>
+                    </Table.Row>
+                    <Table.Row key="9">
+                      <Table.Cell>0.00</Table.Cell>
+                      <Table.Cell>0.00</Table.Cell>
+                    </Table.Row>
+                    <Table.Row key="10">
+                      <Table.Cell>0.00</Table.Cell>
+                      <Table.Cell>0.00</Table.Cell>
+                    </Table.Row>
                   </Table.Body>
                 </Table>
               </Card.Body>
+            </Card>
+          </Grid>
+          <Grid xs>
+            <Card>
+              <StockChart />
             </Card>
           </Grid>
         </Grid.Container>

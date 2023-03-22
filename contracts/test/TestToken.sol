@@ -7,4 +7,8 @@ contract TestToken is ERC20 {
     constructor(uint256 _firstMinted) ERC20("Token for Coinomicon tests", "TTC") {
         _mint(msg.sender, _firstMinted);
     }
+
+    function decimals() public view virtual override returns (uint8) {
+        return 6;
+    }
 }

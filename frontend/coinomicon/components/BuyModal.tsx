@@ -55,7 +55,7 @@ export default function BuyModal(props: Props) {
             )
             setTotal(_total)
           } catch (error) {
-            setTotal('amount exceeds maximum')
+            setTotal('amount exceeds minimum or maximum')
           }
         })()
       }
@@ -137,7 +137,7 @@ export default function BuyModal(props: Props) {
             clearable
             bordered
             placeholder="0.000"
-            label="Limit price (ETH)"
+            label={`Limit price per 1 unit (${decimals} decimals)`}
             type="text"
             initialValue={price}
             onChange={(e) => setPrice(e.target.value)}
