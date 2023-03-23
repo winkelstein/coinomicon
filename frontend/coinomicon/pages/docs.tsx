@@ -21,12 +21,10 @@ export default function Docs() {
   return (
     <Container>
       <Navbar isBordered isCompact variant="static">
-        <Navbar.Brand>
-          <Link href="/">
-            <Text h4 b color="white">
-              Coinomicon Docs
-            </Text>
-          </Link>
+        <Navbar.Brand as={Link} href="/">
+          <Text h4 b color="white">
+            Coinomicon Docs
+          </Text>
         </Navbar.Brand>
         <Navbar.Content>
           <Navbar.Link href={routes.app}>Launch App</Navbar.Link>

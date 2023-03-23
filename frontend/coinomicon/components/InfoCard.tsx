@@ -27,18 +27,24 @@ export default function InfoCard(props: Props) {
         <Row>
           <Col>
             <Row justify="flex-end">
-              <Link href={buttonLink}>
-                <Button flat auto rounded shadow color="primary">
-                  <Text
-                    css={{ color: 'inherit' }}
-                    size={12}
-                    weight="bold"
-                    transform="uppercase"
-                  >
-                    {buttonText}
-                  </Text>
-                </Button>
-              </Link>
+              <Button
+                flat
+                auto
+                rounded
+                shadow
+                color="primary"
+                as={Link}
+                href={buttonLink}
+              >
+                <Text
+                  css={{ color: 'inherit' }}
+                  size={12}
+                  weight="bold"
+                  transform="uppercase"
+                >
+                  {buttonText}
+                </Text>
+              </Button>
             </Row>
           </Col>
         </Row>

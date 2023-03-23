@@ -106,7 +106,7 @@ export default function Exchange() {
       ;(window as any).ethereum.on('chainChanged', async () => {
         /* TODO: Modal to change chain to the correct */
         alert(
-          'Coinomicon works only on Goerli testnet. Change chain to Goerli in Metamask.',
+          'Coinomicon works only on Goerli testnet and hardhat local node. Change chain to Goerli in Metamask and reload page.',
         )
         await (window as any).ethereum.request({
           method: 'wallet_switchEthereumChain',
@@ -166,12 +166,10 @@ export default function Exchange() {
         variant="static"
         css={{ marginBottom: '10px' }}
       >
-        <Navbar.Brand>
-          <Link href="/">
-            <Text h4 b color="white">
-              Coinomicon Exchange
-            </Text>
-          </Link>
+        <Navbar.Brand as={Link} href="/">
+          <Text h4 b color="white">
+            Coinomicon Exchange
+          </Text>
         </Navbar.Brand>
         <Navbar.Content></Navbar.Content>
         <Navbar.Content>
@@ -259,9 +257,12 @@ export default function Exchange() {
                     </Text>
                   </Col>
                 ) : (
-                  <Text b h2>
-                    Connect wallet
-                  </Text>
+                  <Col>
+                    <Text b h2>
+                      Connect wallet
+                    </Text>
+                    <Text h5>to perform trades</Text>
+                  </Col>
                 )}
               </Card.Header>
               <Card.Divider />

@@ -26,12 +26,10 @@ export default function Home() {
   return (
     <Container>
       <Navbar isBordered isCompact variant="static">
-        <Navbar.Brand>
-          <Link href="/">
-            <Text h4 b color="white">
-              Coinomicon
-            </Text>
-          </Link>
+        <Navbar.Brand as={Link} href="/">
+          <Text h4 b color="white">
+            Coinomicon
+          </Text>
         </Navbar.Brand>
         <Navbar.Content>
           <Navbar.Link href={routes.app}>Launch App</Navbar.Link>
@@ -88,16 +86,16 @@ export default function Home() {
                 For everyone
               </Text>
               <Row justify="center">
-                <Link href={routes.app}>
-                  <Button
-                    shadow
-                    color="gradient"
-                    size="md"
-                    css={{ marginTop: '10px' }}
-                  >
-                    Get started
-                  </Button>
-                </Link>
+                <Button
+                  as={Link}
+                  href={routes.app}
+                  shadow
+                  color="gradient"
+                  size="md"
+                  css={{ marginTop: '10px' }}
+                >
+                  Get started
+                </Button>
               </Row>
             </Col>
           </Grid>
@@ -142,7 +140,7 @@ export default function Home() {
             <Grid xs={6}>
               <InfoCard
                 label="Development"
-                title="Contribute to the project or report an issue to make it better."
+                title="Contribute to the project or report an issue to make it better. Also, you can ask us anything about Coinomicon project and suggest new features."
                 imageUrl="tail.jpg"
                 buttonText="contact us"
                 buttonLink={routes.contact}

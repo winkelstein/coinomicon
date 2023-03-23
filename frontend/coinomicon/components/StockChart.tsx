@@ -11,7 +11,11 @@ import {
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement)
 
-export default function StockChart() {
+interface Props {}
+
+export default function StockChart(props: Props) {
+  const {} = props
+
   const data = {
     labels: [
       'March 22',
@@ -26,7 +30,7 @@ export default function StockChart() {
     ],
     datasets: [
       {
-        data: [8, 7.8, 6, 3, 1, 2, 9, 8, 5],
+        data: [8, 7.8, 6, 3, 1, 2, 13, 8, 5],
         backgroundColor: '#ffffff',
         borderColor: '#ff0000',
       },
