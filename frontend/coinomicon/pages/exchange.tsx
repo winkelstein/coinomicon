@@ -105,20 +105,21 @@ export default function Exchange() {
       ;(window as any).ethereum.on('accountsChanged', async () => {
         setCurrentAccount(await provider?.getSigner())
       })
-      ;(window as any).ethereum.on('chainChanged', async () => {
+      ;(window as any).ethereum.on('chainChanged', async (chainId: string) => {
         /* TODO: Modal to change chain to the correct */
-        alert(
-          'Coinomicon works only on Goerli testnet and hardhat local node. Change chain to Goerli in Metamask and reload page.',
-        )
-        await (window as any).ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x7A69' }], // hardhat localhost
-        })
-
-        /*await (window as any).ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x5' }], // goerli testnet
-        })*/
+        if (chainId !== '0x7A69' && chainId !== '0x5') {
+          await (window as any).ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x7A69' }], // hardhat localhost
+          })
+          /*await (window as any).ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x5' }], // goerli testnet
+          })*/
+          alert(
+            'Coinomicon works only on Goerli testnet and hardhat local node. Change chain to Goerli in Metamask and reload page.',
+          )
+        }
       })
       console.log('Connected to Metamask')
       const network = await provider?.getNetwork()
@@ -273,7 +274,11 @@ export default function Exchange() {
                   orientation="horizontal"
                   defaultValue="market"
                   size="md"
-                  onChange={setMarketOrLimit}
+                  onChange={
+                    setMarketOrLimit as React.Dispatch<
+                      React.SetStateAction<string>
+                    >
+                  }
                 >
                   <Radio value="market">Market</Radio>
                   <Radio value="limit">Limit</Radio>
@@ -396,7 +401,9 @@ export default function Exchange() {
           </Grid>
           <Grid xs>
             <Card>
-              <StockChart exchange={currentExchange} />
+              {currentExchange ? (
+                <StockChart exchange={currentExchange} />
+              ) : undefined}
             </Card>
           </Grid>
         </Grid.Container>
