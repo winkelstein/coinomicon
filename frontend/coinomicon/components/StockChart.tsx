@@ -46,15 +46,18 @@ export default function StockChart(props: Props) {
 
   // JUST FOR TESTING
   useEffect(() => {
-    setStocks([
-      { time: '1', price: 7 },
-      { time: '2', price: 17 },
-      { time: '3', price: 26 },
-      { time: '4', price: 91 },
-      { time: '5', price: 5 },
-      { time: '6', price: 348 },
-    ])
-  }, [])
+    if (exchange) {
+      setStocks([
+        { time: '1', price: 7 },
+        { time: '2', price: 17 },
+        { time: '3', price: 26 },
+        { time: '4', price: 91 },
+        { time: '5', price: 5 },
+        { time: '6', price: 348 },
+      ])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exchange])
 
   useEffect(() => {
     let _data: ChartType = {
