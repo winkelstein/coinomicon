@@ -37,6 +37,13 @@ import TokenInfoCard from '@/components/TokenInfoCard'
 }*/
 
 // TODO: modal to change network
+// TODO: subscribe on events to change balance
+
+declare global {
+  interface Window {
+    ethereum: any
+  }
+}
 
 export default function Exchange() {
   const [provider, setProvider] = useState<ethers.BrowserProvider | undefined>(
@@ -70,7 +77,7 @@ export default function Exchange() {
   const [price, setPrice] = useState<string>('')
 
   useEffect(() => {
-    setProvider(new ethers.BrowserProvider((window as any).ethereum))
+    setProvider(new ethers.BrowserProvider(window.ethereum))
   }, [])
 
   useEffect(() => {
@@ -93,7 +100,7 @@ export default function Exchange() {
   }, [currentAccount])
 
   const connectToMetamask = async () => {
-    if (typeof (window as any).ethereum == 'undefined') {
+    if (typeof window.ethereum == 'undefined') {
       alert('This app requires Metamask Ethereum wallet')
       return
     }
@@ -103,24 +110,21 @@ export default function Exchange() {
       provider
         ?.getBalance((account as unknown as ethers.JsonRpcSigner).address)
         .then((value) => setBalance(ethers.formatEther(value.toString())))
-      ;(window as any).ethereum.on('accountsChanged', async () => {
+      window.ethereum.on('accountsChanged', async () => {
         setCurrentAccount(await provider?.getSigner())
       })
-      ;(window as any).ethereum.on('chainChanged', async (chainId: string) => {
-        /* TODO: Modal to change chain to the correct */
-        if (chainId !== '0x7A69' && chainId !== '0x5') {
-          await (window as any).ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0x7A69' }], // hardhat localhost
-          })
-          /*await (window as any).ethereum.request({
+      window.ethereum.on('chainChanged', async () => {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x7A69' }], // hardhat localhost
+        })
+        /*await (window as any).ethereum.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: '0x5' }], // goerli testnet
           })*/
-          alert(
-            'Coinomicon works only on Goerli testnet and hardhat local node. Change chain to Goerli in Metamask and reload page.',
-          )
-        }
+        alert(
+          'Coinomicon works only on Goerli testnet and hardhat local node. Change chain to Goerli in Metamask and reload page.',
+        )
       })
       console.log('Connected to Metamask')
       const network = await provider?.getNetwork()

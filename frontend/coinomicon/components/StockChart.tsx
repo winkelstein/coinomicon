@@ -46,6 +46,7 @@ export default function StockChart(props: Props) {
 
   // JUST FOR TESTING
   useEffect(() => {
+    // TODO: subscribe on events
     if (exchange) {
       setStocks([
         { time: '1', price: 7 },
