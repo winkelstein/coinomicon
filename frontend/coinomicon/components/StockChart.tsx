@@ -14,26 +14,6 @@ import { Contract } from 'ethers'
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement)
 
-/*const _data = {
-  labels: [
-    'March 22',
-    'March 23',
-    'March 24',
-    'March 25',
-    'March 26',
-    'March 27',
-    'March 28',
-    'March 29',
-    'March 30',
-  ],
-  datasets: [
-    {
-      data: [8, 7.8, 6, 3, 1, 2, 13, 8, 5],
-      borderColor: '#ff0000',
-    },
-  ],
-}*/
-
 type DataType = {
   time: string
   price: number
@@ -50,7 +30,7 @@ interface ChartType {
 }
 
 interface Props {
-  exchange: Contract
+  exchange?: Contract
 }
 
 export default function StockChart(props: Props) {
@@ -72,6 +52,7 @@ export default function StockChart(props: Props) {
       { time: '3', price: 26 },
       { time: '4', price: 91 },
       { time: '5', price: 5 },
+      { time: '6', price: 348 },
     ])
   }, [])
 

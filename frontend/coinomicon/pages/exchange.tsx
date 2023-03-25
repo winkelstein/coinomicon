@@ -25,6 +25,7 @@ import { SearchIcon } from '@/components/icons/SearchIcon'
 import BuyModal from '@/components/BuyModal'
 import SellModal from '@/components/SellModal'
 import StockChart from '@/components/StockChart'
+import TokenInfoCard from '@/components/TokenInfoCard'
 
 /*const popularCoinAddresses = {
   USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -246,166 +247,154 @@ export default function Exchange() {
           css={{ height: '100%' }}
           direction="row"
         >
-          <Grid>
-            <Card>
-              <Card.Header>
-                {currentAccount ? (
-                  <Col>
-                    <Text b h4>
-                      ETH/{currentSymbol}
-                    </Text>
-                    <Text>Balance in ETH: {balance.toString()}</Text>
-                    <Text>
-                      Balance in {currentSymbol}: {tokenBalance.toString()}
-                    </Text>
-                  </Col>
-                ) : (
-                  <Col>
-                    <Text b h2>
-                      Connect wallet
-                    </Text>
-                    <Text h5>to perform trades</Text>
-                  </Col>
-                )}
-              </Card.Header>
-              <Card.Divider />
-              <Card.Body>
-                <Radio.Group
-                  orientation="horizontal"
-                  defaultValue="market"
-                  size="md"
-                  onChange={
-                    setMarketOrLimit as React.Dispatch<
-                      React.SetStateAction<string>
+          <Row>
+            <Col css={{ width: '40%' }}>
+              <Grid>
+                <Card>
+                  <Card.Header>
+                    {currentAccount ? (
+                      <Col>
+                        <Text b h4>
+                          ETH/{currentSymbol}
+                        </Text>
+                        <Text>Balance in ETH: {balance.toString()}</Text>
+                        <Text>
+                          Balance in {currentSymbol}: {tokenBalance.toString()}
+                        </Text>
+                      </Col>
+                    ) : (
+                      <Col>
+                        <Text b h2>
+                          Connect wallet
+                        </Text>
+                        <Text h5>to perform trades</Text>
+                      </Col>
+                    )}
+                  </Card.Header>
+                  <Card.Divider />
+                  <Card.Body>
+                    <Radio.Group
+                      orientation="horizontal"
+                      defaultValue="market"
+                      size="md"
+                      onChange={
+                        setMarketOrLimit as React.Dispatch<
+                          React.SetStateAction<string>
+                        >
+                      }
                     >
-                  }
-                >
-                  <Radio value="market">Market</Radio>
-                  <Radio value="limit">Limit</Radio>
-                </Radio.Group>
-                <Input
-                  clearable
-                  bordered
-                  placeholder="0.000"
-                  label={'Amount (' + currentSymbol + ')'}
-                  type="text"
-                  onChange={(e) => setAmount(e.target.value)}
-                  disabled={currentAccount ? false : true}
-                  maxLength={20}
+                      <Radio value="market">Market</Radio>
+                      <Radio value="limit">Limit</Radio>
+                    </Radio.Group>
+                    <Input
+                      clearable
+                      bordered
+                      placeholder="0.000"
+                      label={'Amount (' + currentSymbol + ')'}
+                      type="text"
+                      onChange={(e) => setAmount(e.target.value)}
+                      disabled={currentAccount ? false : true}
+                      maxLength={20}
+                    />
+                    <Input
+                      clearable
+                      bordered
+                      placeholder={
+                        marketOrLimit === 'limit'
+                          ? '0.000'
+                          : 'unavailable in market mode'
+                      }
+                      label="Limit price (ETH)"
+                      type="text"
+                      onChange={(e) => setPrice(e.target.value)}
+                      disabled={
+                        currentAccount && marketOrLimit === 'limit'
+                          ? false
+                          : true
+                      }
+                      maxLength={20}
+                    />
+                  </Card.Body>
+                  <Card.Footer>
+                    <Button
+                      color="success"
+                      bordered
+                      onPress={() => setModalBuyVisible(true)}
+                      disabled={
+                        currentAccount && amount.length > 0
+                          ? marketOrLimit == 'limit'
+                            ? price.length == 0
+                            : false
+                          : true
+                      }
+                      css={{ marginRight: '5px' }}
+                    >
+                      Buy
+                    </Button>
+                    <Button
+                      color="error"
+                      bordered
+                      onPress={() => setModalSellVisible(true)}
+                      disabled={
+                        currentAccount && amount.length > 0
+                          ? marketOrLimit == 'limit'
+                            ? price.length == 0
+                            : false
+                          : true
+                      }
+                    >
+                      Sell
+                    </Button>
+                  </Card.Footer>
+                </Card>
+                <Card css={{ marginTop: '10px' }}>
+                  <Card.Header>
+                    <Text b>Last trades</Text>
+                  </Card.Header>
+                  <Card.Body>
+                    <Table compact>
+                      <Table.Header>
+                        <Table.Column>Size</Table.Column>
+                        <Table.Column>Price</Table.Column>
+                      </Table.Header>
+                      <Table.Body>
+                        {/* TODO: Add functionality */}
+                        <Table.Row key="1">
+                          <Table.Cell>0.00</Table.Cell>
+                          <Table.Cell>0.00</Table.Cell>
+                        </Table.Row>
+                        <Table.Row key="2">
+                          <Table.Cell>0.00</Table.Cell>
+                          <Table.Cell>0.00</Table.Cell>
+                        </Table.Row>
+                        <Table.Row key="3">
+                          <Table.Cell>0.00</Table.Cell>
+                          <Table.Cell>0.00</Table.Cell>
+                        </Table.Row>
+                        <Table.Row key="4">
+                          <Table.Cell>0.00</Table.Cell>
+                          <Table.Cell>0.00</Table.Cell>
+                        </Table.Row>
+                      </Table.Body>
+                    </Table>
+                  </Card.Body>
+                </Card>
+              </Grid>
+            </Col>
+            <Col>
+              <Grid xs>
+                <Card>
+                  <StockChart exchange={currentExchange} />
+                </Card>
+              </Grid>
+              <Grid xs>
+                <TokenInfoCard
+                  token={currentToken}
+                  exchange={currentExchange}
                 />
-                <Input
-                  clearable
-                  bordered
-                  placeholder={
-                    marketOrLimit === 'limit'
-                      ? '0.000'
-                      : 'unavailable in market mode'
-                  }
-                  label="Limit price (ETH)"
-                  type="text"
-                  onChange={(e) => setPrice(e.target.value)}
-                  disabled={
-                    currentAccount && marketOrLimit === 'limit' ? false : true
-                  }
-                  maxLength={20}
-                />
-              </Card.Body>
-              <Card.Footer>
-                <Button
-                  color="success"
-                  bordered
-                  onPress={() => setModalBuyVisible(true)}
-                  disabled={
-                    currentAccount && amount.length > 0
-                      ? marketOrLimit == 'limit'
-                        ? price.length == 0
-                        : false
-                      : true
-                  }
-                  css={{ marginRight: '5px' }}
-                >
-                  Buy
-                </Button>
-                <Button
-                  color="error"
-                  bordered
-                  onPress={() => setModalSellVisible(true)}
-                  disabled={
-                    currentAccount && amount.length > 0
-                      ? marketOrLimit == 'limit'
-                        ? price.length == 0
-                        : false
-                      : true
-                  }
-                >
-                  Sell
-                </Button>
-              </Card.Footer>
-            </Card>
-            <Card css={{ marginTop: '10px' }}>
-              <Card.Header>
-                <Text b>Trades</Text>
-              </Card.Header>
-              <Card.Body>
-                <Table compact>
-                  <Table.Header>
-                    <Table.Column>Size</Table.Column>
-                    <Table.Column>Price</Table.Column>
-                  </Table.Header>
-                  <Table.Body>
-                    {/* TODO: Add functionality */}
-                    <Table.Row key="1">
-                      <Table.Cell>0.00</Table.Cell>
-                      <Table.Cell>0.00</Table.Cell>
-                    </Table.Row>
-                    <Table.Row key="2">
-                      <Table.Cell>0.00</Table.Cell>
-                      <Table.Cell>0.00</Table.Cell>
-                    </Table.Row>
-                    <Table.Row key="3">
-                      <Table.Cell>0.00</Table.Cell>
-                      <Table.Cell>0.00</Table.Cell>
-                    </Table.Row>
-                    <Table.Row key="4">
-                      <Table.Cell>0.00</Table.Cell>
-                      <Table.Cell>0.00</Table.Cell>
-                    </Table.Row>
-                    <Table.Row key="5">
-                      <Table.Cell>0.00</Table.Cell>
-                      <Table.Cell>0.00</Table.Cell>
-                    </Table.Row>
-                    <Table.Row key="6">
-                      <Table.Cell>0.00</Table.Cell>
-                      <Table.Cell>0.00</Table.Cell>
-                    </Table.Row>
-                    <Table.Row key="7">
-                      <Table.Cell>0.00</Table.Cell>
-                      <Table.Cell>0.00</Table.Cell>
-                    </Table.Row>
-                    <Table.Row key="8">
-                      <Table.Cell>0.00</Table.Cell>
-                      <Table.Cell>0.00</Table.Cell>
-                    </Table.Row>
-                    <Table.Row key="9">
-                      <Table.Cell>0.00</Table.Cell>
-                      <Table.Cell>0.00</Table.Cell>
-                    </Table.Row>
-                    <Table.Row key="10">
-                      <Table.Cell>0.00</Table.Cell>
-                      <Table.Cell>0.00</Table.Cell>
-                    </Table.Row>
-                  </Table.Body>
-                </Table>
-              </Card.Body>
-            </Card>
-          </Grid>
-          <Grid xs>
-            <Card>
-              {currentExchange ? (
-                <StockChart exchange={currentExchange} />
-              ) : undefined}
-            </Card>
-          </Grid>
+              </Grid>
+            </Col>
+          </Row>
         </Grid.Container>
       </Container>
     </Container>
