@@ -17,7 +17,7 @@ type ResponseType =
         symbol: string
       }
       exchange_address: string | undefined
-      price: string | undefined
+      price?: string
     }
   | { message: string }
 

@@ -9,7 +9,7 @@ interface Props {
   setPrice: React.Dispatch<React.SetStateAction<string>>
   visible: boolean
   setVisible: React.Dispatch<React.SetStateAction<boolean>>
-  marketOrLimit: string
+  marketOrLimit: 'market' | 'limit'
   signer: ethers.JsonRpcSigner | undefined
   exchange: ethers.Contract | undefined
   token: ethers.Contract | undefined
@@ -38,31 +38,38 @@ export default function SellModal(props: Props) {
 
   useEffect(() => {
     if (exchange && visible && amount.length > 0) {
-      if (marketOrLimit == 'market') {
-        ;(async () => {
-          const _amount = parseTokenAmount(amount)
-          let [available, cost] = await exchange.cost(
-            _amount,
-            '0',
-            false,
-            false,
-          )
-          if (available == 0)
-            cost = BigInt(await exchange.bestPrice()) * _amount
-          setTotal(ethers.formatEther(cost))
-        })()
-      } else if (marketOrLimit == 'limit' && price.length > 0) {
-        ;(async () => {
-          const _amount = parseTokenAmount(amount)
-          try {
-            const _total = ethers.formatEther(
-              ethers.parseEther(price) * _amount,
+      switch (marketOrLimit) {
+        case 'market': {
+          ;(async () => {
+            const _amount = parseTokenAmount(amount)
+            let [available, cost] = await exchange.cost(
+              _amount,
+              '0',
+              false,
+              false,
             )
-            setTotal(_total)
-          } catch (error) {
-            setTotal('amount exceeds minumum or maximum')
+            if (available == 0)
+              cost = BigInt(await exchange.bestPrice()) * _amount
+            setTotal(ethers.formatEther(cost))
+          })()
+          break
+        }
+        case 'limit': {
+          if (price.length > 0) {
+            ;(async () => {
+              const _amount = parseTokenAmount(amount)
+              try {
+                const _total = ethers.formatEther(
+                  ethers.parseEther(price) * _amount,
+                )
+                setTotal(_total)
+              } catch (error) {
+                setTotal('amount exceeds minumum or maximum')
+              }
+            })()
+            break
           }
-        })()
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

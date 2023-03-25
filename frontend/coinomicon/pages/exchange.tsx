@@ -58,7 +58,9 @@ export default function Exchange() {
   const [currentSymbol, setCurrentSymbol] = useState<string>('')
   const [balance, setBalance] = useState<string | bigint>('')
   const [tokenBalance, setTokenBalance] = useState<string | bigint>('')
-  const [marketOrLimit, setMarketOrLimit] = useState('market')
+  const [marketOrLimit, setMarketOrLimit] = useState<'market' | 'limit'>(
+    'market',
+  )
 
   const [modalBuyVisible, setModalBuyVisible] = useState(false)
   const [modalSellVisible, setModalSellVisible] = useState(false)
@@ -394,7 +396,7 @@ export default function Exchange() {
           </Grid>
           <Grid xs>
             <Card>
-              <StockChart />
+              <StockChart exchange={currentExchange} />
             </Card>
           </Grid>
         </Grid.Container>

@@ -9,7 +9,7 @@ interface Props {
   setPrice: React.Dispatch<React.SetStateAction<string>>
   visible: boolean
   setVisible: React.Dispatch<React.SetStateAction<boolean>>
-  marketOrLimit: string
+  marketOrLimit: 'market' | 'limit'
   signer: ethers.JsonRpcSigner | undefined
   exchange: ethers.Contract | undefined
   token: ethers.Contract | undefined
@@ -39,34 +39,41 @@ export default function BuyModal(props: Props) {
 
   useEffect(() => {
     if (exchange && visible && amount.length > 0) {
-      if (marketOrLimit == 'market') {
-        ;(async () => {
-          const _amount = parseTokenAmount(amount)
-          let [_available, cost] = await exchange.cost(
-            _amount,
-            '0',
-            false,
-            true,
-          )
-          setAvailable(ethers.formatUnits(_available, decimals))
-          if (_available == 0) {
-            cost = BigInt(await exchange.bestPrice()) * _amount
-            setAvailable('0')
-          }
-          setTotal(ethers.formatEther(cost))
-        })()
-      } else if (marketOrLimit == 'limit' && price.length > 0) {
-        ;(async () => {
-          const _amount = parseTokenAmount(amount)
-          try {
-            const _total = ethers.formatEther(
-              ethers.parseEther(price) * _amount,
+      switch (marketOrLimit) {
+        case 'market': {
+          ;(async () => {
+            const _amount = parseTokenAmount(amount)
+            let [_available, cost] = await exchange.cost(
+              _amount,
+              '0',
+              false,
+              true,
             )
-            setTotal(_total)
-          } catch (error) {
-            setTotal('amount exceeds minimum or maximum')
+            setAvailable(ethers.formatUnits(_available, decimals))
+            if (_available == 0) {
+              cost = BigInt(await exchange.bestPrice()) * _amount
+              setAvailable('0')
+            }
+            setTotal(ethers.formatEther(cost))
+          })()
+          break
+        }
+        case 'limit': {
+          if (price.length > 0) {
+            ;(async () => {
+              const _amount = parseTokenAmount(amount)
+              try {
+                const _total = ethers.formatEther(
+                  ethers.parseEther(price) * _amount,
+                )
+                setTotal(_total)
+              } catch (error) {
+                setTotal('amount exceeds minimum or maximum')
+              }
+            })()
           }
-        })()
+          break
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
