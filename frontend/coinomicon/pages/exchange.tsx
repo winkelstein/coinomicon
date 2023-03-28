@@ -26,6 +26,7 @@ import BuyModal from '@/components/BuyModal'
 import SellModal from '@/components/SellModal'
 import StockChart from '@/components/StockChart'
 import TokenInfoCard from '@/components/TokenInfoCard'
+import NewOrders from '@/components/NewOrders'
 
 /*const popularCoinAddresses = {
   USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -105,7 +106,11 @@ export default function Exchange() {
       return
     }
     if (currentAccount === undefined) {
-      const account = await provider?.getSigner()
+      const account =
+        (await provider?.getSigner().catch(() => {
+          console.error('Metamask connection declined')
+          return
+        })) ?? undefined
       setCurrentAccount(account)
       provider
         ?.getBalance((account as unknown as ethers.JsonRpcSigner).address)
@@ -252,7 +257,7 @@ export default function Exchange() {
           direction="row"
         >
           <Row>
-            <Col css={{ width: '40%' }}>
+            <Col css={{ width: '40wh' }}>
               <Grid>
                 <Card>
                   <Card.Header>
@@ -351,47 +356,25 @@ export default function Exchange() {
                     </Button>
                   </Card.Footer>
                 </Card>
-                <Card css={{ marginTop: '10px' }}>
+                <Card css={{ marginTop: '10px', height: '42vh' }}>
                   <Card.Header>
-                    <Text b>Last trades</Text>
+                    <Text b>New orders</Text>
                   </Card.Header>
                   <Card.Body>
-                    <Table compact>
-                      <Table.Header>
-                        <Table.Column>Size</Table.Column>
-                        <Table.Column>Price</Table.Column>
-                      </Table.Header>
-                      <Table.Body>
-                        {/* TODO: Add functionality */}
-                        <Table.Row key="1">
-                          <Table.Cell>0.00</Table.Cell>
-                          <Table.Cell>0.00</Table.Cell>
-                        </Table.Row>
-                        <Table.Row key="2">
-                          <Table.Cell>0.00</Table.Cell>
-                          <Table.Cell>0.00</Table.Cell>
-                        </Table.Row>
-                        <Table.Row key="3">
-                          <Table.Cell>0.00</Table.Cell>
-                          <Table.Cell>0.00</Table.Cell>
-                        </Table.Row>
-                        <Table.Row key="4">
-                          <Table.Cell>0.00</Table.Cell>
-                          <Table.Cell>0.00</Table.Cell>
-                        </Table.Row>
-                      </Table.Body>
-                    </Table>
+                    <NewOrders exchange={currentExchange} />
                   </Card.Body>
                 </Card>
               </Grid>
             </Col>
             <Col>
-              <Grid xs>
-                <Card>
+              <Grid>
+                <Card
+                  css={{ height: '60vh', width: '100%', overflowX: 'auto' }}
+                >
                   <StockChart exchange={currentExchange} />
                 </Card>
               </Grid>
-              <Grid xs>
+              <Grid>
                 <TokenInfoCard
                   token={currentToken}
                   exchange={currentExchange}

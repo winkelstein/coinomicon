@@ -36,14 +36,14 @@ interface ICoinomiconExchange {
     function cancelOrder(uint256 orderId) external returns (bool);
 
     event LimitOrderSubmitted(
-        uint256 orderId,
+        uint256 indexed orderId,
         address trader,
         uint256 amount,
         uint256 price,
         bool buy
     );
-    event MarketOrderSubmitted(uint256 orderId, address trader, uint256 amount, bool buy);
-    event LimitOrderClosed(uint256 orderId, address trader, uint256 price, bool buy);
-    event MarketOrderClosed(uint256 orderId, address trader, uint256 price, bool buy);
-    event OrderCancelled(uint256 orderId, address trader);
+    event MarketOrderSubmitted(uint256 indexed orderId, address trader, uint256 amount, bool buy);
+    event LimitOrderClosed(uint256 indexed orderId, address trader, uint256 price, bool buy);
+    event MarketOrderClosed(uint256 indexed orderId, address trader, uint256 price, bool buy);
+    event OrderCancelled(uint256 indexed orderId, address trader);
 }
