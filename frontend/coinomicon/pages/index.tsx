@@ -7,12 +7,12 @@ import {
   Link,
   Navbar,
   Text,
-  Image,
   Row,
   Spacer,
 } from '@nextui-org/react'
 import InfoCard from '@/components/InfoCard'
-import { useState, useEffect } from 'react'
+import TelegramIcon from '@/components/icons/TelegramIcon'
+import GithubIcon from '@/components/icons/GithubIcon'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -42,14 +42,14 @@ export default function Home() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Image src="icons/github_24.png" alt="gh_link"></Image>
+            <GithubIcon />
           </Navbar.Link>
           <Navbar.Link
             href="https://t.me/treug0lnik"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Image src="icons/telegram_24.png" alt="tg_link"></Image>
+            <TelegramIcon />
           </Navbar.Link>
         </Navbar.Content>
       </Navbar>

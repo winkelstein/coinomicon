@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Contract } from 'ethers'
 import erc20_abi from '@/web3-api/abis/ERC20.json'
+import { exchange_abi } from './provider'
 
 import {
   goerliCoinomiconFactory,
@@ -33,6 +34,7 @@ export default async function marketPriceApi(
     const { network, address } = req.query
     let token = new Contract(address as string, erc20_abi, goerliProvider)
     let factory = goerliCoinomiconFactory
+    let exchange: Contract | undefined = undefined
 
     switch (network) {
       case 'goerli':
@@ -47,14 +49,22 @@ export default async function marketPriceApi(
         res.status(400).json({ message: 'Invalid network' })
     }
 
+    const exchange_address = await factory.getExchange(address).catch()
+    if (exchange_address)
+      exchange = new Contract(
+        exchange_address as string,
+        exchange_abi.abi,
+        factory.runner,
+      )
+
     const response = {
       token: {
         address: address as string,
         name: await token.name(),
         symbol: await token.symbol(),
       },
-      exchange_address: undefined,
-      price: undefined,
+      exchange_address,
+      price: exchange ? await exchange.bestPrice() : undefined,
     }
     res.status(200).json(response)
   }

@@ -19,3 +19,4 @@ export const mainnetCoinomiconFactory = new Contract(
   factory_abi.abi,
   mainnetProvider,
 )
+export { factory_abi, exchange_abi }
