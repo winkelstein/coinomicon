@@ -3,7 +3,7 @@ import { Card, Text, Row, Col, Button, Link } from '@nextui-org/react'
 interface Props {
   title: string
   label: string
-  imageUrl: string
+  imageUrl: string | undefined
   buttonText: string
   buttonLink: string
 }
@@ -22,7 +22,7 @@ export default function InfoCard(props: Props) {
           </Text>
         </Col>
       </Card.Header>
-      <Card.Image src={imageUrl} />
+      {imageUrl ? <Card.Image src={imageUrl} /> : <></>}
       <Card.Footer css={{ position: 'absolute', bottom: 0 }}>
         <Row>
           <Col>

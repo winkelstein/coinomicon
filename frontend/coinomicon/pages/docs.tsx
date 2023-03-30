@@ -9,7 +9,9 @@ import {
   Input,
   Link,
 } from '@nextui-org/react'
-import { SearchIcon } from '@/components/icons/SearchIcon'
+import SearchIcon from '@/components/icons/SearchIcon'
+import TelegramIcon from '@/components/icons/TelegramIcon'
+import GithubIcon from '@/components/icons/GithubIcon'
 
 const routes = {
   app: '/exchange',
@@ -37,14 +39,14 @@ export default function Docs() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Image src="icons/github_24.png" alt="gh_link"></Image>
+            <GithubIcon />
           </Navbar.Link>
           <Navbar.Link
             href="https://t.me/treug0lnik"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Image src="icons/telegram_24.png" alt="tg_link"></Image>
+            <TelegramIcon />
           </Navbar.Link>
           <Navbar.Item
             css={{

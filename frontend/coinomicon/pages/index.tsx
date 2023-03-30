@@ -119,7 +119,7 @@ export default function Home() {
               <InfoCard
                 label="About"
                 title="Build DeFi apps with Coinomicon on Ethereum. Start with quick quide, simple documentation and GitHub source code."
-                imageUrl="vik.jpg"
+                imageUrl="/vik.jpg"
                 buttonText="go to docs"
                 buttonLink={routes.docs}
               />
@@ -141,7 +141,7 @@ export default function Home() {
               <InfoCard
                 label="Development"
                 title="Contribute to the project or report an issue to make it better. Also, you can ask us anything about Coinomicon project and suggest new features."
-                imageUrl="tail.jpg"
+                imageUrl="/tail.jpg"
                 buttonText="contact us"
                 buttonLink={routes.contact}
               />

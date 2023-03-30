@@ -15,7 +15,7 @@ import { useState, useEffect, SetStateAction } from 'react'
 import TelegramIcon from '@/components/icons/TelegramIcon'
 import GithubIcon from '@/components/icons/GithubIcon'
 import AddIcon from '@/components/icons/AddIcon'
-import { SearchIcon } from '@/components/icons/SearchIcon'
+import SearchIcon from '@/components/icons/SearchIcon'
 import TokenInfo from '@/components/TokenInfo'
 import config from '@/web3-api/config.json'
 import CreateExchangeModal from '@/components/CreateExchangeModal'
@@ -25,6 +25,12 @@ declare global {
   interface Window {
     ethereum: any
   }
+}
+
+const routes = {
+  app: '/exchange',
+  docs: '/docs',
+  contact: '/contacts',
 }
 
 type TokenData = {
@@ -122,8 +128,8 @@ export default function ExchangeSearch() {
           </Text>
         </Navbar.Brand>
         <Navbar.Content>
-          <Navbar.Link href="/docs">Docs</Navbar.Link>
-          <Navbar.Link href="/contacts">Contact Us</Navbar.Link>
+          <Navbar.Link href={routes.docs}>Docs</Navbar.Link>
+          <Navbar.Link href={routes.contact}>Contact Us</Navbar.Link>
         </Navbar.Content>
         <Navbar.Content>
           <Navbar.Link

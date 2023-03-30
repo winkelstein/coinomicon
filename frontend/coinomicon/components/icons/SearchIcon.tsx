@@ -4,7 +4,7 @@ interface Props {
   size: number
 }
 
-export const SearchIcon = (props: Props) => {
+export default function SearchIcon(props: Props) {
   const { size } = props
 
   return (

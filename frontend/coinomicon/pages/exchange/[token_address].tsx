@@ -22,7 +22,7 @@ import factory_abi from '@/web3-api/abis/CoinomiconFactory.json'
 import exchange_abi from '@/web3-api/abis/CoinomiconExchangeImpl.json'
 import erc20_abi from '@/web3-api/abis/ERC20.json'
 
-import { SearchIcon } from '@/components/icons/SearchIcon'
+import SearchIcon from '@/components/icons/SearchIcon'
 import BuyModal from '@/components/BuyModal'
 import SellModal from '@/components/SellModal'
 import StockChart from '@/components/StockChart'

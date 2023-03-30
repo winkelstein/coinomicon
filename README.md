@@ -29,13 +29,13 @@ Decentralized Exchange with Order Book.
 -   [ ] Exchange page
     -   [x] Navbar
     -   [x] Connect to ethereum
-    -   [ ] Create exchange
-    -   [ ] Get exchange
+    -   [x] Create exchange
+    -   [x] Get exchange
     -   [x] Trade card
-    -   [ ] Trading chart
-    -   [ ] Trades
+    -   [x] Trading chart
+    -   [x] Trades
 -   [ ] Docs page
     -   [ ] Getting started
     -   [ ] Advanced
--   [ ] Contacts page
-    -   [ ] Links to social media
+-   [x] Contacts page
+    -   [x] Links to social media
