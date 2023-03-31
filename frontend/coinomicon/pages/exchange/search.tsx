@@ -7,8 +7,9 @@ import {
   Grid,
   Card,
   Tooltip,
+  Button,
 } from '@nextui-org/react'
-import { Contract, BrowserProvider, isAddress } from 'ethers'
+import { Contract, BrowserProvider, isAddress, JsonRpcSigner } from 'ethers'
 import { useState, useEffect } from 'react'
 import TelegramIcon from '@/components/icons/TelegramIcon'
 import GithubIcon from '@/components/icons/GithubIcon'
@@ -38,15 +39,44 @@ type TokenData = {
 }
 
 export default function ExchangeSearch() {
-  const [provider, setProvider] = useState<BrowserProvider | undefined>(
-    undefined,
-  )
+  const [provider, setProvider] = useState<BrowserProvider>()
+  const [currentAccount, setCurrentAccount] = useState<JsonRpcSigner>()
   const [factory, setFactory] = useState<Contract>()
   const [tokenAddresses, setTokenAddresses] = useState<string[]>([])
   const [topList, setTopList] = useState<TokenData[]>([])
 
   const [searchInput, setSearchInput] = useState<string>('')
   const [createModalVisible, setCreateModalVisible] = useState(false)
+
+  const connectToMetamask = async () => {
+    if (provider) {
+      setCurrentAccount(await provider.getSigner())
+      provider?.getNetwork().then((network) => {
+        const _topList = config[
+          network.chainId.toString() as keyof typeof config
+        ].tokens as unknown as Array<{
+          address: string
+          name: string
+          symbol: string
+        }>
+        setTopList(parseConfig(_topList))
+        setTokenAddresses(parseConfig(_topList).map((item) => item.address))
+        provider
+          .getSigner()
+          .then((signer) =>
+            setFactory(
+              new Contract(
+                config[
+                  network.chainId.toString() as keyof typeof config
+                ].CoinomiconFactory.address,
+                factory_abi.abi,
+                signer,
+              ),
+            ),
+          )
+      })
+    }
+  }
 
   const parseConfig = (topList: TokenData[]): TokenData[] => {
     const _tokenAddresses = []
@@ -62,29 +92,6 @@ export default function ExchangeSearch() {
 
   useEffect(() => {
     const provider = new BrowserProvider(window.ethereum)
-    provider?.getNetwork().then((network) => {
-      const _topList = config[network.chainId.toString() as keyof typeof config]
-        .tokens as unknown as Array<{
-        address: string
-        name: string
-        symbol: string
-      }>
-      setTopList(parseConfig(_topList))
-      setTokenAddresses(parseConfig(_topList).map((item) => item.address))
-      provider
-        .getSigner()
-        .then((signer) =>
-          setFactory(
-            new Contract(
-              config[
-                network.chainId.toString() as keyof typeof config
-              ].CoinomiconFactory.address,
-              factory_abi.abi,
-              signer,
-            ),
-          ),
-        )
-    })
 
     setProvider(provider)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,6 +150,13 @@ export default function ExchangeSearch() {
           >
             <TelegramIcon />
           </Navbar.Link>
+          <Button auto color="primary" bordered onPress={connectToMetamask}>
+            {currentAccount
+              ? currentAccount.address.substring(0, 6) +
+                '....' +
+                currentAccount.address.substring(38)
+              : 'Connect wallet'}
+          </Button>
         </Navbar.Content>
       </Navbar>
 
@@ -176,13 +190,20 @@ export default function ExchangeSearch() {
                     },
                   }}
                   contentRight={
-                    <Tooltip content={'Create new exchange'}>
+                    <Tooltip
+                      content={
+                        currentAccount
+                          ? 'Create new exchange'
+                          : 'Connect wallet'
+                      }
+                    >
                       <button
                         style={{
                           border: 'none',
                           background: 'transparent',
                           width: '30px',
                         }}
+                        disabled={!currentAccount}
                         onClick={() => setCreateModalVisible(true)}
                       >
                         <AddIcon />
