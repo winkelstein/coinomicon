@@ -6,8 +6,6 @@ import {
   Card,
   Grid,
   Row,
-  Col,
-  Button,
 } from '@nextui-org/react'
 import React from 'react'
 import TelegramIcon from '@/components/icons/TelegramIcon'
@@ -20,17 +18,7 @@ const routes = {
   contact: '/contacts',
 }
 
-const address = '0xd1E2224a5A2bC301f1eA50da02fd9079c5d01a21'
-
 export default function Contacts() {
-  const donateEther = async () => {
-    console.log('Donated ether')
-  }
-
-  const donateUSDT = async () => {
-    console.log('Donated USDT')
-  }
-
   return (
     <Container>
       <Navbar isBordered isCompact variant="static">

@@ -1,15 +1,21 @@
 import { Modal, Text, Button, Loading, Input } from '@nextui-org/react'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import { BrowserProvider, Contract, ethers } from 'ethers'
+import { useEffect, useState, Dispatch, SetStateAction } from 'react'
+import {
+  BrowserProvider,
+  Contract,
+  ZeroAddress,
+  isAddress,
+  parseEther,
+} from 'ethers'
 import erc20_abi from '@/web3-api/abis/ERC20.json'
 
 interface Props {
   visible: boolean
-  setVisible: React.Dispatch<React.SetStateAction<boolean>>
+  setVisible: Dispatch<SetStateAction<boolean>>
   provider: BrowserProvider
   address: string
-  setAddress: React.Dispatch<React.SetStateAction<string>>
+  setAddress: Dispatch<SetStateAction<string>>
   factory: Contract
 }
 
@@ -22,13 +28,13 @@ export default function CreateExchangeModal(props: Props) {
 
   useEffect(() => {
     ;(async () => {
-      if (!ethers.isAddress(address)) {
+      if (!isAddress(address)) {
         setError(null)
         return
-      } else if (address === ethers.ZeroAddress) {
+      } else if (address === ZeroAddress) {
         setError('Error: Zero address')
         return
-      } else if ((await factory.getExchange(address)) !== ethers.ZeroAddress) {
+      } else if ((await factory.getExchange(address)) !== ZeroAddress) {
         setError('Error: Exchange for this token already exists')
         return
       } else setError(null)
@@ -37,8 +43,6 @@ export default function CreateExchangeModal(props: Props) {
 
   const createExchange = async () => {
     setIsLoading(true)
-    // TODO: implement this function with Metamask connecting and routing to the newly created exchange page
-    // also, this function needs to check name, symbol and decimals of the given token address and catch error if exchange is already exists
     const token = new Contract(address, erc20_abi, await provider.getSigner())
 
     // Check for valid ERC20 contract
@@ -56,7 +60,7 @@ export default function CreateExchangeModal(props: Props) {
       .catch(() => setError('Error: Invalid ERC20 contract'))
     if (result) {
       factory
-        .createExchange(address, ethers.parseEther(price))
+        .createExchange(address, parseEther(price))
         .catch((reason) => setError(`Error: ${reason}`))
         .then(() => {
           setIsLoading(false)

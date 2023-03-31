@@ -1,14 +1,4 @@
-import { useState } from 'react'
-import {
-  Container,
-  Grid,
-  Navbar,
-  Row,
-  Text,
-  Image,
-  Input,
-  Link,
-} from '@nextui-org/react'
+import { Container, Navbar, Text, Input, Link } from '@nextui-org/react'
 import SearchIcon from '@/components/icons/SearchIcon'
 import TelegramIcon from '@/components/icons/TelegramIcon'
 import GithubIcon from '@/components/icons/GithubIcon'

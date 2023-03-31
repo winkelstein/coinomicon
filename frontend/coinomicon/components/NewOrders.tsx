@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Table } from '@nextui-org/react'
-import { Contract, ethers } from 'ethers'
+import { Contract } from 'ethers'
 
 type TableCell = {
   size: number | string

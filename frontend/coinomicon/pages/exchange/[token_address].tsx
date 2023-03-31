@@ -9,34 +9,28 @@ import {
   Col,
   Card,
   Radio,
-  Table,
-  Modal,
   Row,
-  Spacer,
 } from '@nextui-org/react'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import { ethers } from 'ethers'
+import {
+  formatEther,
+  formatUnits,
+  Contract,
+  BrowserProvider,
+  JsonRpcSigner,
+} from 'ethers'
 import config from '@/web3-api/config.json'
 import factory_abi from '@/web3-api/abis/CoinomiconFactory.json'
 import exchange_abi from '@/web3-api/abis/CoinomiconExchangeImpl.json'
 import erc20_abi from '@/web3-api/abis/ERC20.json'
 
 import SearchIcon from '@/components/icons/SearchIcon'
-import BuyModal from '@/components/BuyModal'
-import SellModal from '@/components/SellModal'
+import BuyModal from '@/components/modals/BuyModal'
+import SellModal from '@/components/modals/SellModal'
 import StockChart from '@/components/StockChart'
 import TokenInfoCard from '@/components/TokenInfoCard'
 import NewOrders from '@/components/NewOrders'
-
-/*const popularCoinAddresses = {
-    USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    HEX: '0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39',
-    MATIC: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0',
-    USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-    BNB: '0xB8c77482e45F1F44dE1745F52C74426C631bDD52',
-    LINK: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
-  }*/
 
 // TODO: modal to change network
 // TODO: subscribe on events to change balance
@@ -51,22 +45,12 @@ export default function Exchange() {
   const router = useRouter()
   const { token_address } = router.query as { token_address: string }
 
-  const [provider, setProvider] = useState<ethers.BrowserProvider | undefined>(
-    undefined,
-  )
-  const [currentAccount, setCurrentAccount] = useState<
-    ethers.JsonRpcSigner | undefined
-  >(undefined)
-  const [coinomiconFactory, setCoinomiconFactory] = useState<
-    ethers.Contract | undefined
-  >(undefined)
+  const [provider, setProvider] = useState<BrowserProvider>()
+  const [currentAccount, setCurrentAccount] = useState<JsonRpcSigner>()
+  const [coinomiconFactory, setCoinomiconFactory] = useState<Contract>()
 
-  const [currentExchange, setCurrentExchange] = useState<
-    ethers.Contract | undefined
-  >(undefined)
-  const [currentToken, setCurrentToken] = useState<ethers.Contract | undefined>(
-    undefined,
-  )
+  const [currentExchange, setCurrentExchange] = useState<Contract>()
+  const [currentToken, setCurrentToken] = useState<Contract>()
 
   const [currentSymbol, setCurrentSymbol] = useState<string>('')
   const [balance, setBalance] = useState<string | bigint>('')
@@ -82,7 +66,7 @@ export default function Exchange() {
   const [price, setPrice] = useState<string>('')
 
   useEffect(() => {
-    setProvider(new ethers.BrowserProvider(window.ethereum))
+    setProvider(new BrowserProvider(window.ethereum))
   }, [])
 
   useEffect(() => {
@@ -92,12 +76,12 @@ export default function Exchange() {
       currentToken?.connect(currentAccount)
       provider
         ?.getBalance(currentAccount.address)
-        .then((value) => setBalance(ethers.formatEther(value.toString())))
+        .then((value) => setBalance(formatEther(value.toString())))
       currentToken
         ?.balanceOf(currentAccount.address)
         .then(async (value) =>
           setTokenBalance(
-            ethers.formatUnits(value.toString(), await currentToken.decimals()),
+            formatUnits(value.toString(), await currentToken.decimals()),
           ),
         )
     }
@@ -117,8 +101,8 @@ export default function Exchange() {
         })) ?? undefined
       setCurrentAccount(account)
       provider
-        ?.getBalance((account as unknown as ethers.JsonRpcSigner).address)
-        .then((value) => setBalance(ethers.formatEther(value.toString())))
+        ?.getBalance((account as unknown as JsonRpcSigner).address)
+        .then((value) => setBalance(formatEther(value.toString())))
       window.ethereum.on('accountsChanged', async () => {
         setCurrentAccount(await provider?.getSigner())
       })
@@ -139,25 +123,18 @@ export default function Exchange() {
       const network = await provider?.getNetwork()
       const chainId = network?.chainId.toString()
       if (chainId === '31337' || chainId === '5') {
-        const coinomiconFactory = new ethers.Contract(
+        const coinomiconFactory = new Contract(
           config[chainId as keyof typeof config].CoinomiconFactory
             .address as string,
           factory_abi.abi,
           account,
         )
-        const tokenContract = new ethers.Contract(
-          token_address,
-          erc20_abi,
-          account,
-        )
+        const tokenContract = new Contract(token_address, erc20_abi, account)
         tokenContract
-          ?.balanceOf((account as unknown as ethers.JsonRpcSigner).address)
+          ?.balanceOf((account as unknown as JsonRpcSigner).address)
           .then(async (value) =>
             setTokenBalance(
-              ethers.formatUnits(
-                value.toString(),
-                await tokenContract.decimals(),
-              ),
+              formatUnits(value.toString(), await tokenContract.decimals()),
             ),
           )
         tokenContract?.symbol().then(setCurrentSymbol)
@@ -166,7 +143,7 @@ export default function Exchange() {
           .getExchange(await tokenContract.getAddress())
           .then((address) =>
             setCurrentExchange(
-              new ethers.Contract(address, exchange_abi.abi, account),
+              new Contract(address, exchange_abi.abi, account),
             ),
           )
         setCurrentToken(tokenContract)
@@ -376,7 +353,10 @@ export default function Exchange() {
             <Col>
               <Grid>
                 <Card
-                  css={{ height: '60vh', width: '100%', overflowX: 'auto' }}
+                  css={{
+                    height: '60vh',
+                    width: '100%',
+                  }}
                 >
                   <StockChart exchange={currentExchange} />
                 </Card>

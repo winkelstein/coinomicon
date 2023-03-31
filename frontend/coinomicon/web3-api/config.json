@@ -10,5 +10,17 @@
         "symbol": "TTC"
       }
     }
+  },
+  "5": {
+    "CoinomiconFactory": {
+      "address": "0x0"
+    },
+    "tokens": {
+      "0": {
+        "address": "",
+        "name": "",
+        "symbol": ""
+      }
+    }
   }
 }

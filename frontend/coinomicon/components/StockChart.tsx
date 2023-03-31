@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Text } from '@nextui-org/react'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -7,10 +6,8 @@ import {
   CategoryScale,
   LinearScale,
   PointElement,
-  ChartData,
-  Point,
 } from 'chart.js'
-import { Contract, formatEther, formatUnits } from 'ethers'
+import { Contract, formatEther } from 'ethers'
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement)
 
@@ -61,9 +58,7 @@ export default function StockChart(props: Props) {
     },
   }
 
-  // JUST FOR TESTING
   useEffect(() => {
-    // TODO: subscribe on events
     if (exchange) {
       ;(async () => {
         let _stocks = stocks
@@ -73,6 +68,7 @@ export default function StockChart(props: Props) {
           if (order.active === false) {
             _stocks.push({
               time: parseTime(order.date),
+
               price: formatEther(order.price.toString()),
             })
           }

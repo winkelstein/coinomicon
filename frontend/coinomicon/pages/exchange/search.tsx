@@ -2,23 +2,21 @@ import {
   Container,
   Navbar,
   Input,
-  Button,
   Link,
   Text,
   Grid,
   Card,
-  styled,
   Tooltip,
 } from '@nextui-org/react'
-import { Contract, ethers } from 'ethers'
-import { useState, useEffect, SetStateAction } from 'react'
+import { Contract, BrowserProvider, isAddress } from 'ethers'
+import { useState, useEffect } from 'react'
 import TelegramIcon from '@/components/icons/TelegramIcon'
 import GithubIcon from '@/components/icons/GithubIcon'
 import AddIcon from '@/components/icons/AddIcon'
 import SearchIcon from '@/components/icons/SearchIcon'
 import TokenInfo from '@/components/TokenInfo'
 import config from '@/web3-api/config.json'
-import CreateExchangeModal from '@/components/CreateExchangeModal'
+import CreateExchangeModal from '@/components/modals/CreateExchangeModal'
 import factory_abi from '@/web3-api/abis/CoinomiconFactory.json'
 
 declare global {
@@ -40,7 +38,7 @@ type TokenData = {
 }
 
 export default function ExchangeSearch() {
-  const [provider, setProvider] = useState<ethers.BrowserProvider | undefined>(
+  const [provider, setProvider] = useState<BrowserProvider | undefined>(
     undefined,
   )
   const [factory, setFactory] = useState<Contract>()
@@ -63,7 +61,7 @@ export default function ExchangeSearch() {
   }
 
   useEffect(() => {
-    const provider = new ethers.BrowserProvider(window.ethereum)
+    const provider = new BrowserProvider(window.ethereum)
     provider?.getNetwork().then((network) => {
       const _topList = config[network.chainId.toString() as keyof typeof config]
         .tokens as unknown as Array<{
@@ -97,7 +95,7 @@ export default function ExchangeSearch() {
       setTokenAddresses(topList.map((item) => item.address))
     const _tokenAddresses: string[] = []
 
-    if (!ethers.isAddress(searchInput)) {
+    if (!isAddress(searchInput)) {
       topList
         .filter(
           ({ address, name, symbol }) =>
@@ -113,7 +111,6 @@ export default function ExchangeSearch() {
     setTokenAddresses(_tokenAddresses)
   }, [searchInput, topList])
 
-  // TODO: implement logic
   return (
     <Container css={{ height: '100%' }}>
       <Navbar

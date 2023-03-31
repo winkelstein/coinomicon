@@ -1,4 +1,4 @@
-import { Card, Text, Button, Col, Row } from '@nextui-org/react'
+import { Card, Text, Row } from '@nextui-org/react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { BrowserProvider, Contract } from 'ethers'

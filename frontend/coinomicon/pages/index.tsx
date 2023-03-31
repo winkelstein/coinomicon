@@ -14,8 +14,6 @@ import InfoCard from '@/components/InfoCard'
 import TelegramIcon from '@/components/icons/TelegramIcon'
 import GithubIcon from '@/components/icons/GithubIcon'
 
-const inter = Inter({ subsets: ['latin'] })
-
 const routes = {
   app: '/exchange',
   docs: '/docs',

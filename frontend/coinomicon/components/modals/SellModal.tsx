@@ -1,18 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Dispatch, SetStateAction } from 'react'
 import { Modal, Text, Input, Button, Loading } from '@nextui-org/react'
-import { ethers } from 'ethers'
+import {
+  Contract,
+  JsonRpcSigner,
+  formatEther,
+  formatUnits,
+  parseEther,
+  parseUnits,
+} from 'ethers'
 
 interface Props {
   amount: string
-  setAmount: React.Dispatch<React.SetStateAction<string>>
+  setAmount: Dispatch<SetStateAction<string>>
   price: string
-  setPrice: React.Dispatch<React.SetStateAction<string>>
+  setPrice: Dispatch<SetStateAction<string>>
   visible: boolean
-  setVisible: React.Dispatch<React.SetStateAction<boolean>>
+  setVisible: Dispatch<SetStateAction<boolean>>
   marketOrLimit: 'market' | 'limit'
-  signer: ethers.JsonRpcSigner | undefined
-  exchange: ethers.Contract | undefined
-  token: ethers.Contract | undefined
+  signer?: JsonRpcSigner
+  exchange?: Contract
+  token?: Contract
 }
 
 export default function SellModal(props: Props) {
@@ -50,7 +57,7 @@ export default function SellModal(props: Props) {
             )
             if (available == 0)
               cost = BigInt(await exchange.bestPrice()) * _amount
-            setTotal(ethers.formatEther(cost))
+            setTotal(formatEther(cost))
           })()
           break
         }
@@ -59,9 +66,7 @@ export default function SellModal(props: Props) {
             ;(async () => {
               const _amount = parseTokenAmount(amount)
               try {
-                const _total = ethers.formatEther(
-                  ethers.parseEther(price) * _amount,
-                )
+                const _total = formatEther(parseEther(price) * _amount)
                 setTotal(_total)
               } catch (error) {
                 setTotal('amount exceeds minumum or maximum')
@@ -76,14 +81,14 @@ export default function SellModal(props: Props) {
   }, [amount, price, exchange, marketOrLimit, visible])
 
   const parseTokenAmount = (value: string) => {
-    return ethers.parseUnits(value, decimals)
+    return parseUnits(value, decimals)
   }
 
   const sellLimit = async () => {
     if (exchange && token) {
       const _amount = parseTokenAmount(amount)
       await token.approve(await exchange.getAddress(), _amount)
-      await exchange?.submitLimitOrder(_amount, ethers.parseEther(price), false)
+      await exchange?.submitLimitOrder(_amount, parseEther(price), false)
     }
   }
 

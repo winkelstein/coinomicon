@@ -23,7 +23,6 @@ export default function TokenInfoCard(props: Props) {
         setDecimals((await token.decimals()).toString())
         setBestPrice(formatEther((await exchange.bestPrice()).toString()))
 
-        // TODO: subscribe on events
         if ((await exchange.getOrderCount()) > 0n) {
           const lastId: bigint = (await exchange.getOrderCount()) - 1n
           const lastOrder = await exchange.getOrder(lastId)
