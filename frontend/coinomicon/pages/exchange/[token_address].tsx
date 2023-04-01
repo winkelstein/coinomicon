@@ -107,16 +107,12 @@ export default function Exchange() {
         setCurrentAccount(await provider?.getSigner())
       })
       window.ethereum.on('chainChanged', async () => {
-        await window.ethereum.request({
+        await (window as any).ethereum.request({
           method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x7A69' }], // hardhat localhost
+          params: [{ chainId: '0x5' }], // goerli testnet
         })
-        /*await (window as any).ethereum.request({
-              method: 'wallet_switchEthereumChain',
-              params: [{ chainId: '0x5' }], // goerli testnet
-            })*/
         alert(
-          'Coinomicon works only on Goerli testnet and hardhat local node. Change chain to Goerli in Metamask and reload page.',
+          'Coinomicon works only on Goerli testnet. Change chain to Goerli in Metamask and reload page.',
         )
       })
       console.log('Connected to Metamask')

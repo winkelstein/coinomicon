@@ -13,13 +13,13 @@
   },
   "5": {
     "CoinomiconFactory": {
-      "address": "0x0"
+      "address": "0x36F187077A9aeB24562321332edFAC4329451eD2"
     },
     "tokens": {
       "0": {
-        "address": "",
-        "name": "",
-        "symbol": ""
+        "address": "0x45B02a8100Fe8740237D44C7e09C510D869FC78A",
+        "name": "Dai Stablecoin",
+        "symbol": "DAI"
       }
     }
   }
