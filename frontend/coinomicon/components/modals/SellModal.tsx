@@ -4,7 +4,6 @@ import {
   Contract,
   JsonRpcSigner,
   formatEther,
-  formatUnits,
   parseEther,
   parseUnits,
 } from 'ethers'
