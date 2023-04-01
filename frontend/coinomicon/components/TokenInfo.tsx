@@ -29,7 +29,12 @@ export default function TokenInfo(props: Props) {
 
   if (error) return <></>
   return (
-    <Card css={{ marginBottom: '5px' }} as={Link} href={`/exchange/${address}`}>
+    <Card
+      css={{ marginBottom: '5px' }}
+      // @ts-ignore
+      as={Link}
+      href={`/exchange/${address}`}
+    >
       <Card.Body css={{ overflow: 'hidden' }}>
         <Row>
           <Text b>Name: {name}</Text>
