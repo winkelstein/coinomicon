@@ -26,7 +26,7 @@ Decentralized Exchange with Order Book.
     -   [x] Info cards
     -   [x] Links
     -   [x] Footer
--   [ ] Exchange page
+-   [x] Exchange page
     -   [x] Navbar
     -   [x] Connect to ethereum
     -   [x] Create exchange
