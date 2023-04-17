@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "./interfaces/ICoinomiconFactory.sol";
 
 /// @title Coinomicon Exchange
-/// @author treug0lnik041
+/// @author winkelstein
 /// @notice Should only be deployed by Factory contract
 contract CoinomiconExchange {
     struct Order {

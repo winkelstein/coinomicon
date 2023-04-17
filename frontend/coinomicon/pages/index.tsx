@@ -35,14 +35,14 @@ export default function Home() {
         </Navbar.Content>
         <Navbar.Content>
           <Navbar.Link
-            href="https://github.com/treug0lnik041/coinomicon"
+            href="https://github.com/winkelstein/coinomicon"
             target="_blank"
             rel="noopener noreferrer"
           >
             <GithubIcon />
           </Navbar.Link>
           <Navbar.Link
-            href="https://t.me/treug0lnik"
+            href="https://t.me/winkelstein"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -151,7 +151,7 @@ export default function Home() {
         css={{ position: 'absolute', bottom: 0, width: '100%', height: '30px' }}
       >
         <Text b>Coinomicon.</Text>
-        <Text>Made by treug0lnik. MIT License.</Text>
+        <Text>Made by winkelstein. MIT License.</Text>
       </Container>
     </Container>
   )

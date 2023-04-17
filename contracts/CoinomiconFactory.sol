@@ -7,7 +7,7 @@ import "./CoinomiconExchangeImpl.sol";
 import "./CoinomiconExchangeProxy.sol";
 
 /// @title Coinomicon Factory
-/// @author treug0lnik041
+/// @author winkelstein
 /// @notice This contract should manage exchanges
 contract CoinomiconFactory is ICoinomiconFactory, Ownable {
     mapping(address => address) private exchanges;
