@@ -1,5 +1,12 @@
-import { Container, Text, Navbar, Card, Grid, Row } from '@nextui-org/react'
-import Link from 'next/link'
+import {
+  Container,
+  Text,
+  Navbar,
+  Link,
+  Card,
+  Grid,
+  Row,
+} from '@nextui-org/react'
 import React from 'react'
 import TelegramIcon from '@/components/icons/TelegramIcon'
 import GithubIcon from '@/components/icons/GithubIcon'
@@ -27,14 +34,14 @@ export default function Contacts() {
         </Navbar.Content>
         <Navbar.Content>
           <Navbar.Link
-            href="https://github.com/treug0lnik041/coinomicon"
+            href="https://github.com/winkelstein/coinomicon"
             target="_blank"
             rel="noopener noreferrer"
           >
             <GithubIcon />
           </Navbar.Link>
           <Navbar.Link
-            href="https://t.me/treug0lnik"
+            href="https://t.me/winkelstein"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -64,7 +71,7 @@ export default function Contacts() {
               <Card
                 // @ts-ignore
                 as={Link}
-                href="https://github.com/treug0lnik041/"
+                href="https://github.com/winkelstein"
                 target="_blank"
               >
                 <Card.Body>
@@ -81,7 +88,7 @@ export default function Contacts() {
               <Card
                 // @ts-ignore
                 as={Link}
-                href="https://t.me/treug0lnik"
+                href="https://t.me/winkelstein"
                 target="_blank"
               >
                 <Card.Body>

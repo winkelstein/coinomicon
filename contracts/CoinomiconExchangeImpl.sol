@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./interfaces/ICoinomiconExchange.sol";
 
 /// @title Coinomicon Exchange
-/// @author treug0lnik041
+/// @author winkelstein
 /// @notice Should only be deployed by Factory contract
 contract CoinomiconExchangeImpl is ICoinomiconExchange {
     using SafeMath for uint256;
